@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.example.cams.entity.CamsUser;
 import com.example.cams.security.CamsOriginGuard;
+import com.example.cams.service.CamsAccountService;
 import com.example.cams.util.CamsClock;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,10 +32,12 @@ import static com.example.cams.util.CamsValidation.integer;
 public class CamsPublicController {
 
     private final CamsOriginGuard originGuard;
+    private final CamsAccountService accountService;
     private final CamsClock clock;
 
-    public CamsPublicController(CamsOriginGuard originGuard, CamsClock clock) {
+    public CamsPublicController(CamsOriginGuard originGuard, CamsAccountService accountService, CamsClock clock) {
         this.originGuard = originGuard;
+        this.accountService = accountService;
         this.clock = clock;
     }
 
@@ -49,6 +52,24 @@ public class CamsPublicController {
         json.put("application", "CAMS");
         json.put("clock_mode", clock.isDemo() ? "demo" : "real");
         return json;
+    }
+
+    @Operation(summary = "Đăng ký tài khoản bệnh nhân",
+            description = "Tạo tài khoản vai trò patient. Email được chuẩn hóa chữ thường và phải duy nhất.")
+    @ApiResponse(responseCode = "201", description = "Đăng ký thành công", content = @Content(schema = @Schema(implementation = CamsApiModels.RegisterResponse.class)))
+    @ApiResponse(responseCode = "409", description = "Email đã được sử dụng (email_exists)", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin đăng ký", required = true,
+            content = @Content(schema = @Schema(implementation = CamsApiModels.RegisterRequest.class)))
+    @PostMapping("/register")
+    public org.springframework.http.ResponseEntity<Map<String, Object>> register(HttpServletRequest request,
+            @RequestBody Map<String, Object> body) {
+        originGuard.check(request);
+        Long id = accountService.register(body);
+        Map<String, Object> json = new LinkedHashMap<>();
+        json.put("id", id);
+        json.put("message", "Đăng ký thành công. Bạn có thể đăng nhập.");
+        return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
+                .body(json);
     }
 
 }
