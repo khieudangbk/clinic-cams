@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.example.cams.entity.CamsUser;
+import com.example.cams.security.CamsAuthContext;
 import com.example.cams.security.CamsOriginGuard;
 import com.example.cams.service.CamsAccountService;
 import com.example.cams.util.CamsClock;
@@ -23,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.example.cams.service.CamsAdminService.publicUser;
 import static com.example.cams.util.CamsValidation.integer;
 
 /** Unauthenticated endpoints: health, public catalog/slots, registration and login. */
@@ -33,11 +35,13 @@ public class CamsPublicController {
 
     private final CamsOriginGuard originGuard;
     private final CamsAccountService accountService;
+    private final CamsAuthContext authContext;
     private final CamsClock clock;
 
-    public CamsPublicController(CamsOriginGuard originGuard, CamsAccountService accountService, CamsClock clock) {
+    public CamsPublicController(CamsOriginGuard originGuard, CamsAccountService accountService, CamsAuthContext authContext, CamsClock clock) {
         this.originGuard = originGuard;
         this.accountService = accountService;
+        this.authContext = authContext;
         this.clock = clock;
     }
 
@@ -72,4 +76,22 @@ public class CamsPublicController {
                 .body(json);
     }
 
+    @Operation(summary = "Đăng nhập",
+            description = "Xác thực email/mật khẩu, đặt cookie HttpOnly `cams_session` (SameSite=Strict, 8 giờ) và trả CSRF token. Sai 5 lần liên tiếp thì khóa email đó 60 giây.")
+    @ApiResponse(responseCode = "200", description = "Đăng nhập thành công", content = @Content(schema = @Schema(implementation = CamsApiModels.LoginResponse.class)))
+    @ApiResponse(responseCode = "401", description = "Sai email hoặc mật khẩu (invalid_credentials)", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @ApiResponse(responseCode = "429", description = "Bị khóa tạm thời (rate_limited)", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Email và mật khẩu", required = true,
+            content = @Content(schema = @Schema(implementation = CamsApiModels.LoginRequest.class)))
+    @PostMapping("/login")
+    public Map<String, Object> login(HttpServletRequest request, HttpServletResponse response,
+            @RequestBody Map<String, Object> body) {
+        originGuard.check(request);
+        CamsUser user = accountService.login(body);
+        String csrf = authContext.issueSession(response, user);
+        Map<String, Object> json = new LinkedHashMap<>();
+        json.put("user", publicUser(user));
+        json.put("csrf", csrf);
+        return json;
+    }
 }

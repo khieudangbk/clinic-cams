@@ -30,6 +30,17 @@ public final class CamsApiModels {
 
     // ---------------------------------------------------------------- users & session
 
+    @Schema(description = "Thông tin công khai của một tài khoản.")
+    public record UserInfo(
+            @Schema(example = "3") long id,
+            @Schema(example = "Nguyễn Văn A") String name,
+            @Schema(example = "patient@example.com") String email,
+            @Schema(example = "0911222333", nullable = true) String phone,
+            @Schema(description = "Vai trò.", allowableValues = { "patient", "receptionist", "doctor", "manager" },
+                    example = "patient") String role,
+            @JsonProperty("specialty_id") @Schema(description = "Chuyên khoa (chỉ bác sĩ).", nullable = true) Long specialtyId,
+            @Schema(description = "1 = đang hoạt động, 0 = đã khóa.", allowableValues = { "0", "1" }, example = "1") int active) {
+    }
 
     @Schema(description = "Đăng ký tài khoản bệnh nhân.")
     public record RegisterRequest(
@@ -46,7 +57,17 @@ public final class CamsApiModels {
             @Schema(example = "Đăng ký thành công. Bạn có thể đăng nhập.") String message) {
     }
 
+    @Schema(description = "Thông tin đăng nhập.")
+    public record LoginRequest(
+            @Schema(example = "staff@cams.local") String email,
+            @Schema(example = "Demo@12345") String password) {
+    }
 
+    @Schema(description = "Kết quả đăng nhập. Cookie `cams_session` được đặt qua header Set-Cookie.")
+    public record LoginResponse(
+            UserInfo user,
+            @Schema(description = "CSRF token cần gửi trong header X-CSRF-Token cho mọi request ghi.") String csrf) {
+    }
 
 
     @Schema(description = "Tình trạng dịch vụ.")

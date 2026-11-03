@@ -3,6 +3,7 @@ package com.example.cams.service;
 import com.example.cams.entity.CamsUser;
 import com.example.cams.entity.enums.CamsRole;
 import com.example.cams.repository.CamsUserRepository;
+import com.example.cams.security.CamsLoginRateLimiter;
 import com.example.cams.util.exception.CamsApiException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,10 +21,13 @@ public class CamsAccountService {
 
     private final CamsUserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CamsLoginRateLimiter rateLimiter;
 
-    public CamsAccountService(CamsUserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public CamsAccountService(CamsUserRepository userRepository, PasswordEncoder passwordEncoder,
+            CamsLoginRateLimiter rateLimiter) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.rateLimiter = rateLimiter;
     }
 
     @Transactional
@@ -48,4 +52,20 @@ public class CamsAccountService {
         }
     }
 
+    /** Verifies credentials and the account's lockout window; returns the authenticated user. */
+    @Transactional
+    public CamsUser login(Map<String, Object> data) {
+        String email = text(data.get("email"), "Email", 150).toLowerCase();
+        String password = text(data.get("password"), "Mật khẩu", 128);
+
+        rateLimiter.requireNotLocked(email);
+        CamsUser user = userRepository.findByEmailAndActiveTrue(email).orElse(null);
+        if (user == null || user.getPasswordHash() == null
+                || !passwordEncoder.matches(password, user.getPasswordHash())) {
+            rateLimiter.recordFailure(email);
+            throw new CamsApiException(401, "Email hoặc mật khẩu không đúng.", "invalid_credentials");
+        }
+        rateLimiter.clear(email);
+        return user;
+    }
 }
