@@ -2,6 +2,7 @@ package com.example.cams.util.exception;
 
 import com.example.cams.controller.CamsCatalogController;
 import com.example.cams.controller.CamsPublicController;
+import com.example.cams.controller.CamsScheduleController;
 import com.example.cams.controller.CamsSessionController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ import java.util.Map;
  * the unrelated generic auth module's advices (GlobalExceptionHandler, FormatResponse) apply to
  * their own single controller (AuthController).
  */
-@RestControllerAdvice(assignableTypes = { CamsCatalogController.class, CamsPublicController.class, CamsSessionController.class })
+@RestControllerAdvice(assignableTypes = { CamsCatalogController.class, CamsPublicController.class, CamsScheduleController.class, CamsSessionController.class })
 public class CamsExceptionHandler {
 
     @ExceptionHandler(CamsApiException.class)

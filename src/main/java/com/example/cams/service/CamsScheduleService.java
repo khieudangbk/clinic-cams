@@ -1,0 +1,78 @@
+package com.example.cams.service;
+
+import com.example.cams.entity.CamsSchedule;
+import com.example.cams.entity.enums.CamsRole;
+import com.example.cams.repository.CamsScheduleRepository;
+import com.example.cams.repository.CamsUserRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+
+import static com.example.cams.util.CamsValidation.integer;
+import static com.example.cams.util.CamsValidation.require;
+import static com.example.cams.util.CamsValidation.text;
+
+/** Doctor weekly working-hours template — mirrors app.py's POST /api/schedules. */
+@Service
+public class CamsScheduleService {
+
+    private final CamsScheduleRepository scheduleRepository;
+    private final CamsUserRepository userRepository;
+
+    public CamsScheduleService(CamsScheduleRepository scheduleRepository, CamsUserRepository userRepository) {
+        this.scheduleRepository = scheduleRepository;
+        this.userRepository = userRepository;
+    }
+
+    @Transactional
+    @SuppressWarnings("unchecked")
+    public void save(Map<String, Object> data) {
+        long doctorId = integer(data.get("doctor_id"), "Bác sĩ");
+        Object rawWeekdays = data.get("weekdays");
+        require(rawWeekdays instanceof List, "Chọn thứ Hai đến thứ Bảy.");
+        List<Object> weekdaysList = (List<Object>) rawWeekdays;
+        require(!weekdaysList.isEmpty(), "Chọn thứ Hai đến thứ Bảy.");
+        Set<Integer> weekdays = new TreeSet<>();
+        for (Object value : weekdaysList) {
+            require(value instanceof Integer, "Chọn thứ Hai đến thứ Bảy.");
+            int day = (Integer) value;
+            require(day >= 0 && day <= 5, "Chọn thứ Hai đến thứ Bảy.");
+            weekdays.add(day);
+        }
+        String start = text(data.get("start_time"), "Giờ bắt đầu", 5);
+        String end = text(data.get("end_time"), "Giờ kết thúc", 5);
+        try {
+            LocalTime.parse(start);
+            LocalTime.parse(end);
+        } catch (Exception e) {
+            require(false, "Giờ làm việc không hợp lệ.");
+        }
+        require(start.matches("\\d{2}:\\d{2}") && end.matches("\\d{2}:\\d{2}")
+                && "07:00".compareTo(start) <= 0 && start.compareTo(end) < 0 && end.compareTo("17:00") <= 0,
+                "Giờ làm việc trong 07:00–17:00.");
+
+        require(userRepository.existsByIdAndRoleAndActiveTrue(doctorId, CamsRole.doctor), "Bác sĩ không tồn tại.");
+
+        CamsSchedule schedule = scheduleRepository.findByDoctorId(doctorId).orElseGet(() -> {
+            CamsSchedule fresh = new CamsSchedule();
+            fresh.setDoctorId(doctorId);
+            return fresh;
+        });
+        StringBuilder csv = new StringBuilder();
+        for (int day : weekdays) {
+            if (csv.length() > 0) {
+                csv.append(',');
+            }
+            csv.append(day);
+        }
+        schedule.setWeekdays(csv.toString());
+        schedule.setStartTime(start);
+        schedule.setEndTime(end);
+        scheduleRepository.save(schedule);
+    }
+}
