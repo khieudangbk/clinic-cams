@@ -1,0 +1,6 @@
+dist/
+node_modules/
+*.log
+tsconfig.tsbuildinfo
+CLAUDE.md
+DESIGN.md
