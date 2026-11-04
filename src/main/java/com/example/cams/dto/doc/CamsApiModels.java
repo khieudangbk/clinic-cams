@@ -26,6 +26,9 @@ public final class CamsApiModels {
                     + "reschedule_limit, wrong_day, too_early, bad_request, internal_error.", example = "unauthorized") String code) {
     }
 
+    @Schema(description = "Kết quả thao tác không trả dữ liệu.")
+    public record OkResponse(@Schema(example = "true") boolean ok) {
+    }
 
 
     // ---------------------------------------------------------------- users & session
@@ -69,6 +72,14 @@ public final class CamsApiModels {
             @Schema(description = "CSRF token cần gửi trong header X-CSRF-Token cho mọi request ghi.") String csrf) {
     }
 
+    @Schema(description = "Phiên đăng nhập hiện tại.")
+    public record SessionResponse(
+            UserInfo user,
+            @Schema(description = "CSRF token của phiên.") String csrf,
+            @Schema(description = "Cấu hình hệ thống: slot_minutes, cutoff_hours, max_reschedules, max_active...",
+                    example = "{\"slot_minutes\":30,\"cutoff_hours\":2,\"max_reschedules\":2}") Map<String, Integer> settings,
+            @Schema(description = "Thời gian hiện tại của hệ thống (+07:00).", example = "2026-11-23T08:00+07:00") String now) {
+    }
 
     @Schema(description = "Tình trạng dịch vụ.")
     public record HealthResponse(
