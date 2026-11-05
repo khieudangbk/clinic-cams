@@ -150,10 +150,44 @@ public final class CamsApiModels {
 
     // ---------------------------------------------------------------- leaves
 
+    @Schema(description = "Đăng ký nghỉ của bác sĩ.")
+    public record CreateLeaveRequest(
+            @JsonProperty("doctor_id") @Schema(description = "Quản lý bắt buộc chỉ định; bác sĩ tự đăng ký thì bị bỏ qua.", example = "2") Long doctorId,
+            @JsonProperty("starts_at") @Schema(description = "ISO-8601 có offset.", example = "2026-11-25T08:00:00+07:00") String startsAt,
+            @JsonProperty("ends_at") @Schema(description = "ISO-8601 có offset, sau starts_at.", example = "2026-11-25T12:00:00+07:00") String endsAt,
+            @Schema(description = "Lý do nghỉ, 1-300 ký tự.", example = "Nghỉ ốm") String reason) {
+    }
 
+    @Schema(description = "Một lượt nghỉ của bác sĩ.")
+    public record LeaveInfo(
+            long id,
+            @JsonProperty("doctor_id") long doctorId,
+            @JsonProperty("doctor_name") String doctorName,
+            @JsonProperty("starts_at") String startsAt,
+            @JsonProperty("ends_at") String endsAt,
+            String reason,
+            @JsonProperty("created_by") Long createdBy) {
+    }
 
+    @Schema(description = "Danh sách lượt nghỉ: bác sĩ thấy của mình, quản lý thấy tất cả.")
+    public record LeaveListResponse(List<LeaveInfo> leaves) {
+    }
 
+    @Schema(description = "Lịch hẹn bị ảnh hưởng bởi lượt nghỉ.")
+    public record AffectedAppointment(
+            long id,
+            String status,
+            @JsonProperty("starts_at") String startsAt,
+            @JsonProperty("patient_name") String patientName,
+            @JsonProperty("patient_phone") String patientPhone) {
+    }
 
+    @Schema(description = "Kết quả đăng ký nghỉ.")
+    public record CreateLeaveResponse(
+            long id,
+            List<AffectedAppointment> affected,
+            @Schema(example = "Đã chặn đặt mới. Lễ tân cần liên hệ các lịch bị ảnh hưởng.") String message) {
+    }
 
     // ---------------------------------------------------------------- schedules & admin
 
