@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
-import { api } from './api';
+import { api, setCsrf, ApiError } from './api';
 import type { Catalog, User } from './types';
 type Store = {
   catalog: Catalog | null;
@@ -15,8 +15,8 @@ const Context = createContext<Store>(null!);
 export const useApp = () => useContext(Context);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [catalog, setCatalog] = useState<Catalog | null>(null),
-    [user] = useState<User | null>(null),
-    [settings] = useState({}),
+    [user, setUser] = useState<User | null>(null),
+    [settings, setSettings] = useState({}),
     [ready, setReady] = useState(false),
     [error, setError] = useState(''),
     [toast, setToast] = useState({ text: '', error: false });
@@ -30,13 +30,28 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     const c = await api<Catalog>('/api/public/catalog');
     setCatalog(c);
+    try {
+      const s = await api('/api/session');
+      setUser(s.user);
+      setCsrf(s.csrf);
+      setSettings(s.settings);
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) {
+        setUser(null);
+        setCsrf('');
+      } else throw e;
+    }
   }, []);
   useEffect(() => {
     refresh()
       .catch((e) => setError(e.message))
       .finally(() => setReady(true));
   }, [refresh]);
-  const logout = async () => {};
+  const logout = async () => {
+    await api('/api/logout', 'POST', {});
+    setUser(null);
+    setCsrf('');
+  };
   return (
     <Context.Provider value={{ catalog, user, settings, ready, error, refresh, logout, notify }}>
       {children}
