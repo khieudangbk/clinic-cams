@@ -71,6 +71,39 @@ public class CamsPublicController {
         return catalogService.publicCatalog();
     }
 
+    @Operation(summary = "Khung giờ còn trống của bác sĩ",
+            description = "Sinh (nếu chưa có) và trả về các khung giờ còn trống của một bác sĩ trong một ngày. Khung giờ đã được đặt, đã qua hoặc rơi vào lịch nghỉ bị loại.")
+    @ApiResponse(responseCode = "200", description = "Danh sách khung giờ", content = @Content(schema = @Schema(implementation = CamsApiModels.SlotsResponse.class)))
+    @ApiResponse(responseCode = "400", description = "doctor_id hoặc day không hợp lệ", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @GetMapping("/public/slots")
+    public Map<String, Object> publicSlots(HttpServletRequest request,
+            @Parameter(description = "Id bác sĩ", example = "2") @RequestParam("doctor_id") String doctorIdParam,
+            @Parameter(description = "Ngày cần xem, định dạng yyyy-MM-dd", example = "2026-11-24") @RequestParam("day") String dayParam) {
+        originGuard.check(request);
+        long doctorId = integer(doctorIdParam, "Bác sĩ");
+        LocalDate day = catalogService.requireDay(dayParam);
+        catalogService.generateSlots(doctorId, day);
+        List<Map<String, Object>> slots = catalogService.listSlotsForDay(doctorId, day).stream()
+                .filter(slot -> isAvailable(doctorId, slot.getId()))
+                .map(slot -> {
+                    Map<String, Object> json = new LinkedHashMap<>();
+                    json.put("id", slot.getId());
+                    json.put("starts_at", com.example.cams.util.CamsTime.stamp(slot.getStartsAt()));
+                    json.put("ends_at", com.example.cams.util.CamsTime.stamp(slot.getEndsAt()));
+                    return json;
+                }).toList();
+        return Map.of("slots", slots);
+    }
+
+    private boolean isAvailable(long doctorId, Long slotId) {
+        try {
+            catalogService.validateSlot(slotId, null);
+            return true;
+        } catch (com.example.cams.util.exception.CamsApiException e) {
+            return false;
+        }
+    }
+
     @Operation(summary = "Đăng ký tài khoản bệnh nhân",
             description = "Tạo tài khoản vai trò patient. Email được chuẩn hóa chữ thường và phải duy nhất.")
     @ApiResponse(responseCode = "201", description = "Đăng ký thành công", content = @Content(schema = @Schema(implementation = CamsApiModels.RegisterResponse.class)))

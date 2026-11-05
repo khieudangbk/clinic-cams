@@ -59,4 +59,42 @@ public class CamsCatalogController {
         return catalogService.fullCatalog();
     }
 
+    @Operation(summary = "Khung giờ còn trống (đã đăng nhập)",
+            description = "Như `/api/public/slots` nhưng bao gồm doctor_id. Bác sĩ chỉ được xem lịch của chính mình.")
+    @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
+    @ApiResponse(responseCode = "200", description = "Danh sách khung giờ", content = @Content(schema = @Schema(implementation = CamsApiModels.SlotsResponse.class)))
+    @GetMapping("/slots")
+    public Map<String, Object> slots(HttpServletRequest request, @Parameter(description = "Id bác sĩ", example = "2") @RequestParam("doctor_id") String doctorIdParam,
+            @Parameter(description = "Ngày cần xem, định dạng yyyy-MM-dd", example = "2026-11-24") @RequestParam("day") String dayParam) {
+        originGuard.check(request);
+        CamsUser user = authContext.authenticate(request).user();
+        require(Set.of(CamsRole.patient, CamsRole.receptionist, CamsRole.manager, CamsRole.doctor)
+                .contains(user.getRole()), "Bạn không có quyền thực hiện thao tác này.", 403, "forbidden");
+        long doctorId = integer(doctorIdParam, "Bác sĩ");
+        if (user.getRole() == CamsRole.doctor) {
+            require(doctorId == user.getId(), "Chỉ được xem lịch của mình.", 403);
+        }
+        LocalDate day = catalogService.requireDay(dayParam);
+        catalogService.generateSlots(doctorId, day);
+        List<Map<String, Object>> slots = catalogService.listSlotsForDay(doctorId, day).stream()
+                .filter(slot -> isAvailable(slot.getId()))
+                .map(slot -> {
+                    Map<String, Object> json = new LinkedHashMap<>();
+                    json.put("id", slot.getId());
+                    json.put("doctor_id", slot.getDoctorId());
+                    json.put("starts_at", CamsTime.stamp(slot.getStartsAt()));
+                    json.put("ends_at", CamsTime.stamp(slot.getEndsAt()));
+                    return json;
+                }).toList();
+        return Map.of("slots", slots);
+    }
+
+    private boolean isAvailable(Long slotId) {
+        try {
+            catalogService.validateSlot(slotId, null);
+            return true;
+        } catch (com.example.cams.util.exception.CamsApiException e) {
+            return false;
+        }
+    }
 }
