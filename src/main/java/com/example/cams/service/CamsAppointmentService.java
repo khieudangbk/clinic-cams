@@ -140,4 +140,42 @@ public class CamsAppointmentService {
                 .toList();
     }
 
+    public List<Map<String, Object>> auditTrail(Long appointmentId, CamsUser actor) {
+        getForUser(appointmentId, actor); // ownership check, result unused
+        return auditRepository.findByAppointmentIdOrderByIdAsc(appointmentId).stream().map(row -> {
+            CamsUser user = userRepository.findById(row.getActorId()).orElse(null);
+            Map<String, Object> json = new LinkedHashMap<>();
+            json.put("id", row.getId());
+            json.put("appointment_id", row.getAppointmentId());
+            json.put("actor_id", row.getActorId());
+            json.put("actor_name", user == null ? null : user.getName());
+            json.put("action", row.getAction());
+            json.put("before_json", row.getBeforeJson());
+            json.put("after_json", row.getAfterJson());
+            json.put("reason", row.getReason());
+            json.put("created_at", CamsTime.stamp(row.getCreatedAt()));
+            return json;
+        }).toList();
+    }
+
+    private void audit(Long appointmentId, CamsUser actor, String action, Map<String, Object> before,
+            Map<String, Object> after, String reason) {
+        CamsAudit entry = new CamsAudit();
+        entry.setAppointmentId(appointmentId);
+        entry.setActorId(actor.getId());
+        entry.setAction(action);
+        entry.setBeforeJson(writeJson(before));
+        entry.setAfterJson(writeJson(after));
+        entry.setReason(reason);
+        entry.setCreatedAt(clock.now());
+        auditRepository.save(entry);
+    }
+
+    private String writeJson(Object value) {
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (Exception e) {
+            throw new CamsApiException(500, "Lỗi máy chủ.", "internal_error");
+        }
+    }
 }
