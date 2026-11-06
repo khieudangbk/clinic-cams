@@ -53,6 +53,24 @@ public class CamsAppointmentController {
         return Map.of("appointments", appointmentService.list(user));
     }
 
+    @Operation(summary = "Đặt lịch khám",
+            description = "Bệnh nhân đặt trạng thái `pending` (chờ lễ tân duyệt), kênh `online`. Lễ tân đặt hộ trạng thái `confirmed`, kênh `staff`. Tuân theo giới hạn số lịch chưa khám.")
+    @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
+    @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
+    @ApiResponse(responseCode = "201", description = "Đã tạo lịch hẹn", content = @Content(schema = @Schema(implementation = CamsApiModels.AppointmentResponse.class)))
+    @ApiResponse(responseCode = "409", description = "Khung giờ đã có người đặt hoặc đạt giới hạn lịch chưa khám", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin đặt lịch", required = true,
+            content = @Content(schema = @Schema(implementation = CamsApiModels.CreateAppointmentRequest.class)))
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> create(HttpServletRequest request,
+            @RequestBody Map<String, Object> body) {
+        originGuard.check(request);
+        CamsAuthContext.Authenticated auth = authContext.authenticate(request);
+        authContext.requireCsrf(request, auth.session());
+        Map<String, Object> appointment = appointmentService.create(auth.user(), body);
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("appointment", appointment));
+    }
+
     @Operation(summary = "Lịch sử thao tác của lịch hẹn",
             description = "Danh sách thay đổi trạng thái theo thời gian của một lịch hẹn mà người dùng có quyền xem.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
