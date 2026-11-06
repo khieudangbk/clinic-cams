@@ -167,6 +167,12 @@ public final class CamsApiModels {
             @JsonProperty("booking_details") BookingDetails bookingDetails) {
     }
 
+    @Schema(description = "Dữ liệu cho thao tác chuyển trạng thái; trường cần dùng tùy theo action.")
+    public record TransitionRequest(
+            @Schema(description = "cancel/reschedule: bắt buộc với bệnh nhân (tối đa 300 ký tự). reject: bắt buộc. "
+                    + "Các action khác: bỏ qua.", example = "Khách đổi ý") String reason,
+            @JsonProperty("slot_id") @Schema(description = "Chỉ reschedule: khung giờ mới, phải khác khung giờ hiện tại.", example = "205") Long slotId) {
+    }
 
     @Schema(description = "Một lịch hẹn.")
     public record AppointmentInfo(
