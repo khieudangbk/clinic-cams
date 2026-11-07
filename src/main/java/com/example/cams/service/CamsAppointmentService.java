@@ -265,7 +265,9 @@ public class CamsAppointmentService {
             Map<String, AppointmentStatus[]> transitions = Map.of(
                     "approve", new AppointmentStatus[] { AppointmentStatus.pending, AppointmentStatus.confirmed },
                     "reject", new AppointmentStatus[] { AppointmentStatus.pending, AppointmentStatus.cancelled },
-                    "checkin", new AppointmentStatus[] { AppointmentStatus.confirmed, AppointmentStatus.arrived });
+                    "checkin", new AppointmentStatus[] { AppointmentStatus.confirmed, AppointmentStatus.arrived },
+                    "complete", new AppointmentStatus[] { AppointmentStatus.arrived, AppointmentStatus.completed },
+                    "noshow", new AppointmentStatus[] { AppointmentStatus.confirmed, AppointmentStatus.noshow });
             AppointmentStatus[] pair = transitions.get(action);
             require(pair != null, "Không tìm thấy chức năng.", 404, "not_found");
             require(appointment.getStatus() == pair[0], "Chuyển trạng thái không hợp lệ.", 409, "invalid_transition");
@@ -273,6 +275,10 @@ public class CamsAppointmentService {
             if (action.equals("checkin")) {
                 require(slot.getStartsAt().toLocalDate().equals(clock.now().toLocalDate()),
                         "Chỉ check-in vào ngày hẹn.", 409, "wrong_day");
+            }
+            if (action.equals("noshow")) {
+                require(!slot.getEndsAt().isAfter(clock.now()),
+                        "Chỉ đánh dấu vắng khi khung giờ đã kết thúc.", 409, "too_early");
             }
             reason = action.equals("reject") ? text(data.get("reason"), "Lý do từ chối", 300)
                     : "Chuyển trạng thái " + pair[1].name();
