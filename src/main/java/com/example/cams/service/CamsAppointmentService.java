@@ -230,7 +230,24 @@ public class CamsAppointmentService {
         Map<String, Object> before = toJson(appointment);
         String reason;
 
-        {
+        if (action.equals("cancel")) {
+            require(actor.getRole() == CamsRole.patient || actor.getRole() == CamsRole.receptionist,
+                    "Bạn không có quyền thực hiện thao tác này.", 403, "forbidden");
+            require(appointment.getStatus() == AppointmentStatus.pending
+                    || appointment.getStatus() == AppointmentStatus.confirmed,
+                    "Lịch không còn được đổi/hủy.", 409, "invalid_transition");
+            reason = actor.getRole() == CamsRole.receptionist
+                    ? text(data.get("reason"), "Lý do đổi/hủy", 300)
+                    : text(data.getOrDefault("reason", "Bệnh nhân yêu cầu"), "Lý do", 300);
+            CamsSlot currentSlot = slotRepository.findById(appointment.getSlotId()).orElseThrow();
+            if (actor.getRole() == CamsRole.patient) {
+                int cutoffHours = setting("cutoff_hours");
+                boolean inTime = java.time.Duration.between(clock.now(), currentSlot.getStartsAt())
+                        .compareTo(java.time.Duration.ofHours(cutoffHours)) >= 0;
+                require(inTime, "Phải thao tác trước giờ hẹn ít nhất " + cutoffHours + " giờ.", 409, "cutoff");
+            }
+            appointment.setStatus(AppointmentStatus.cancelled);
+        } else {
             require(actor.getRole() == CamsRole.receptionist, "Bạn không có quyền thực hiện thao tác này.", 403,
                     "forbidden");
             Map<String, AppointmentStatus[]> transitions = Map.of(
