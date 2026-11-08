@@ -3,6 +3,7 @@ import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from './context';
 import { Loading, ErrorBox } from './components/UI';
 import { PublicLayout } from './components/Layout';
+import Home from './pages/Home';
 export default function App() {
   const { ready, error, catalog } = useApp();
   const { pathname } = useLocation();
@@ -37,7 +38,9 @@ export default function App() {
   return (
     <Routes>
       <Route element={<PublicLayout />}>
-        <Route path="/" element={<div className="container page"><h1>CAMS</h1></div>} />
+        {['/', '/tai-nha', '/tai-vien', '/song-khoe'].map((path) => (
+          <Route path={path} element={<Home />} key={path} />
+        ))}
         <Route
           path="*"
           element={
