@@ -30,6 +30,9 @@ public final class CamsApiModels {
     public record OkResponse(@Schema(example = "true") boolean ok) {
     }
 
+    @Schema(description = "Kết quả tạo mới, trả về id.")
+    public record CreatedIdResponse(@Schema(description = "Id bản ghi vừa tạo.", example = "12") long id) {
+    }
 
     // ---------------------------------------------------------------- users & session
 
@@ -278,7 +281,18 @@ public final class CamsApiModels {
             @Schema(example = "Đã lưu mẫu tuần. Lịch hẹn đã tồn tại được giữ nguyên.") String message) {
     }
 
+    @Schema(description = "Danh sách nhân sự (bác sĩ, lễ tân, quản lý).")
+    public record UserListResponse(List<UserInfo> users) {
+    }
 
+    @Schema(description = "Tạo tài khoản nhân sự.")
+    public record CreateStaffUserRequest(
+            @Schema(allowableValues = { "doctor", "receptionist" }) String role,
+            @Schema(description = "Họ tên, 1-100 ký tự.", example = "BS. Lê D") String name,
+            @Schema(description = "Email hợp lệ, không trùng.", example = "d@cams.local") String email,
+            @Schema(description = "Mật khẩu 10-128 ký tự.", example = "Demo@12345") String password,
+            @JsonProperty("specialty_id") @Schema(description = "Bắt buộc khi role = doctor.", example = "1") Long specialtyId) {
+    }
 
 
 

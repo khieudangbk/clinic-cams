@@ -58,4 +58,42 @@ public class CamsAdminService {
         return json;
     }
 
+    public List<Map<String, Object>> listStaffUsers() {
+        return userRepository
+                .findByRoleInOrderByIdAsc(List.of(CamsRole.doctor, CamsRole.receptionist, CamsRole.manager))
+                .stream().map(CamsAdminService::publicUser).toList();
+    }
+
+    @Transactional
+    public Long createStaffUser(Map<String, Object> data) {
+        Object role = data.get("role");
+        require("doctor".equals(role) || "receptionist".equals(role), "Chỉ tạo bác sĩ hoặc nhân viên.");
+        String name = text(data.get("name"), "Họ tên", 100);
+        String email = text(data.get("email"), "Email", 150).toLowerCase();
+        require(email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+"), "Email không hợp lệ.");
+        String hashed = passwordEncoder.encode(text(data.get("password"), "Mật khẩu", 128, 10));
+        Long specialtyId = "doctor".equals(role) ? integer(data.get("specialty_id"), "Chuyên khoa") : null;
+        if (specialtyId != null) {
+            require(specialtyRepository.findById(specialtyId).isPresent(), "Chuyên khoa không tồn tại.");
+        }
+
+        CamsUser user = new CamsUser();
+        user.setName(name);
+        user.setEmail(email);
+        user.setPasswordHash(hashed);
+        user.setRole("doctor".equals(role) ? CamsRole.doctor : CamsRole.receptionist);
+        user.setSpecialtyId(specialtyId);
+        try {
+            userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new CamsApiException(409, "Email đã tồn tại.", "email_exists");
+        }
+        if (user.getRole() == CamsRole.doctor) {
+            CamsSchedule schedule = new CamsSchedule();
+            schedule.setDoctorId(user.getId());
+            scheduleRepository.save(schedule);
+        }
+        return user.getId();
+    }
+
 }

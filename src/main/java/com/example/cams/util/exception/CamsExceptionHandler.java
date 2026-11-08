@@ -1,5 +1,6 @@
 package com.example.cams.util.exception;
 
+import com.example.cams.controller.CamsAdminController;
 import com.example.cams.controller.CamsAppointmentController;
 import com.example.cams.controller.CamsCatalogController;
 import com.example.cams.controller.CamsLeaveController;
@@ -21,7 +22,9 @@ import java.util.Map;
  * the unrelated generic auth module's advices (GlobalExceptionHandler, FormatResponse) apply to
  * their own single controller (AuthController).
  */
-@RestControllerAdvice(assignableTypes = { CamsAppointmentController.class, CamsCatalogController.class, CamsLeaveController.class, CamsPublicController.class, CamsScheduleController.class, CamsSessionController.class })
+@RestControllerAdvice(assignableTypes = { CamsPublicController.class, CamsSessionController.class,
+        CamsCatalogController.class, CamsAppointmentController.class, CamsLeaveController.class,
+        CamsScheduleController.class, CamsAdminController.class })
 public class CamsExceptionHandler {
 
     @ExceptionHandler(CamsApiException.class)
