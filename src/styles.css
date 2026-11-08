@@ -389,10 +389,194 @@ td small {
 .modal .primary {
   margin-block: 12px;
 }
+/* 8.1–8.5 Header, category pills and navigation drawer. */
+.smart-banner {
+  display: none;
+}
+.site-header {
+  background: var(--mint);
+  position: relative;
+  z-index: 20;
+}
+.header-container {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 78px;
+  margin: auto;
+  padding: 0 15px;
+  flex-wrap: wrap;
+}
+.menu-button {
+  color: #969495;
+  display: grid;
+  place-items: center;
+}
+.menu-button svg {
+  width: 36px;
+  height: 36px;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--secondary);
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+.logo-mark {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #49bce2;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #49bce2;
+}
+.logo-mark svg {
+  width: 25px;
+  height: 25px;
+}
+.logo small {
+  display: block;
+  font-size: 7px;
+  letter-spacing: 0.4px;
+  color: #61a9ba;
+  font-weight: 500;
+  margin-top: 5px;
+}
+.category-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex: 1;
+}
+.category-tabs a {
+  font-size: 18px;
+  line-height: 27px;
+  padding: 5px 8px;
+  border-radius: 32px;
+  white-space: nowrap;
+  color: #111;
+}
+.header-actions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 20px;
+}
+.header-actions a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  white-space: nowrap;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  gap: 2px;
+}
+.header-actions svg {
+  width: 26px;
+  height: 26px;
+}
+.header-actions .cooperate svg {
+  width: 32px;
+  height: 32px;
+}
+.account-action svg {
+  width: 23px;
+  height: 23px;
+}
+.inner-nav {
+  display: flex;
+  gap: 22px;
+  flex: 1;
+  justify-content: center;
+}
+.inner-nav a {
+  display: flex;
+  flex-direction: column;
+  color: #000;
+}
+.inner-nav strong {
+  font-size: 12px;
+  line-height: 18px;
+}
+.inner-nav small {
+  font-size: 10px;
+  line-height: 15px;
+  margin-top: 2px;
+}
+.drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  height: 100dvh;
+  max-height: 100dvh;
+  width: 260px;
+  max-width: 85vw;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  box-shadow: 0 2px 4px #0004;
+  overflow-y: auto;
+}
+.drawer-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 15px;
+}
+.drawer-title .logo {
+  font-size: 25px;
+}
+.drawer-title .logo small {
+  display: none;
+}
+.drawer-title > button {
+  color: #999;
+}
+.drawer > a,
+.drawer-logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 45px;
+  padding: 10px 15px;
+  background: #f1f1f1;
+  border-bottom: 1px solid #cbc1c1ed;
+  font-size: 16px;
+  color: var(--primary);
+  width: 100%;
+}
+.drawer > p {
+  padding: 9px 15px 5px;
+  font-size: 12px;
+  color: #555;
+  margin: 0;
+}
+.drawer-note {
+  padding: 25px 15px;
+  font-size: 12px;
+  color: #888;
+}
+/* Responsive values from DESIGN.md §4, §9. */
+@media (min-width: 577px) {
+  .header-container {
+    width: 100%;
+  }
+}
 @media (min-width: 769px) {
   .container {
     width: 768px;
     padding-inline: 0;
+  }
+  .header-container {
+    width: 768px;
+    padding: 0;
   }
   .carousel {
     gap: 40px;
@@ -411,6 +595,23 @@ td small {
   .container {
     width: 992px;
   }
+  .header-container {
+    width: 100%;
+    padding: 10px;
+    min-height: 124px;
+    position: relative;
+    align-content: flex-start;
+  }
+  .header-container .category-tabs {
+    order: 5;
+    flex-basis: 100%;
+    height: 38px;
+    margin-top: 0;
+    justify-content: center;
+  }
+  .header-actions {
+    margin-left: auto;
+  }
   .carousel {
     gap: 32px;
   }
@@ -423,16 +624,89 @@ td small {
     line-height: 30px;
     padding: 10px 8px;
   }
+  .inner-header .header-container {
+    min-height: 78px;
+    align-content: center;
+  }
 }
 @media (min-width: 1201px) {
   .container {
+    width: 1200px;
+  }
+  .header-container {
+    width: 992px;
+    min-height: 78px;
+    padding: 0;
+    flex-wrap: nowrap;
+    gap: 16px;
+  }
+  .header-container .category-tabs {
+    order: initial;
+    flex-basis: auto;
+    gap: 8px;
+    height: auto;
+    margin: 0;
+  }
+  .header-actions {
+    gap: 15px;
+  }
+  .header-actions a {
+    font-size: 12px;
+  }
+  .logo {
+    font-size: 32px;
+  }
+  .inner-header .header-container {
     width: 1200px;
   }
   .carousel {
     gap: 40px;
   }
 }
+@media (min-width: 1401px) {
+  .header-container {
+    width: 1200px;
+  }
+  .header-actions {
+    gap: 25px;
+  }
+  .category-tabs {
+    gap: 16px !important;
+  }
+}
 @media (max-width: 992px) {
+  .site-header {
+    background: white;
+  }
+  .category-tabs {
+    order: 5;
+    flex-basis: 100%;
+    justify-content: space-around;
+    gap: 5px;
+    padding: 5px 0 10px;
+  }
+  .category-tabs a {
+    border: 1px solid #f1f1f1;
+  }
+  .header-container {
+    padding-block: 15px 0;
+    gap: 15px;
+    min-height: 78px;
+  }
+  .header-actions {
+    gap: 20px;
+  }
+  .inner-nav {
+    order: 5;
+    flex-basis: 100%;
+    justify-content: space-between;
+    padding: 12px 0;
+    gap: 10px;
+    overflow: auto;
+  }
+  .inner-nav small {
+    display: none;
+  }
   .section-heading {
     margin-bottom: 24px;
   }
@@ -444,6 +718,17 @@ td small {
 @media (max-width: 768px) {
   .container {
     padding-inline: 15px;
+  }
+  .header-container {
+    width: 100%;
+    padding-inline: 15px;
+  }
+  .category-tabs {
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .category-tabs a {
+    font-size: 18px;
   }
   .carousel {
     gap: 24px;
@@ -463,6 +748,103 @@ td small {
   }
 }
 @media (max-width: 576px) {
+  .smart-banner {
+    height: 49px;
+    padding: 8px 15px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: #edfffa;
+  }
+  .smart-banner > img {
+    height: 32px;
+    width: 32px;
+  }
+  .smart-banner strong {
+    font-size: 12px;
+    line-height: 18px;
+    display: block;
+  }
+  .smart-banner small {
+    font-size: 10px;
+    line-height: 15px;
+    color: #969495;
+    display: block;
+  }
+  .smart-banner > a {
+    margin-left: auto;
+    border-radius: 9999px;
+    background: var(--primary);
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 4px 20px;
+  }
+  .header-container {
+    min-height: 78px;
+    padding-top: 14px;
+    gap: 10px;
+  }
+  .menu-button svg {
+    width: 24px;
+    height: 24px;
+  }
+  .logo {
+    font-size: 29px;
+    gap: 7px;
+  }
+  .logo-mark {
+    width: 33px;
+    height: 33px;
+  }
+  .logo-mark svg {
+    width: 23px;
+    height: 23px;
+  }
+  .logo small {
+    font-size: 6px;
+    margin-top: 4px;
+    letter-spacing: 0.25px;
+  }
+  .header-actions {
+    gap: 13px;
+  }
+  .header-actions a {
+    font-size: 10px;
+    line-height: 15px;
+    font-weight: 500;
+    gap: 3px;
+  }
+  .header-actions svg {
+    width: 23px;
+    height: 23px;
+  }
+  .header-actions .cooperate {
+    display: none;
+  }
+  .header-actions .search-action {
+    display: none;
+  }
+  .header-actions .account-action {
+    max-width: 52px;
+  }
+  .category-tabs {
+    padding-block: 11px 9px;
+    gap: 3px;
+  }
+  .category-tabs a {
+    font-size: 16px;
+    line-height: 24px;
+    padding: 5px 8px;
+  }
+  .inner-nav {
+    padding: 10px 0;
+    gap: 17px;
+  }
+  .inner-nav strong {
+    font-size: 11px;
+    white-space: nowrap;
+  }
   .home-section {
     padding-block: 20px;
   }
