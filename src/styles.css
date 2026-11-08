@@ -563,6 +563,134 @@ td small {
   font-size: 12px;
   color: #888;
 }
+/* 8.17–8.19 Footer and floating helpers. */
+.footer-main {
+  background: #efefef;
+  padding: 32px 0 0;
+}
+.footer-grid {
+  display: grid;
+  grid-template-columns: 40% 26% 29%;
+  gap: 2.5%;
+  font-size: 14px;
+}
+.footer-company {
+  display: block;
+  margin: 22px 0 12px;
+}
+.footer-grid p {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  font-size: 13px;
+  line-height: 21px;
+}
+.footer-grid p > svg {
+  color: #b7b7b7;
+  flex-shrink: 0;
+}
+.footer-links {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+.footer-grid h3 {
+  font-size: 14px;
+  margin: 0 0 15px;
+}
+.footer-partner {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  color: #333;
+}
+.footer-partner img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+.footer-partner small {
+  font-size: 12px;
+  color: #777;
+}
+.footer-app {
+  border-top: 1px solid #ccc;
+  padding-block: 20px;
+  margin-top: 20px;
+  font-size: 13px;
+}
+.footer-bottom {
+  background: #64b9e5;
+  min-height: 80px;
+  padding: 12px 0;
+  color: #fff;
+  font-size: 12px;
+}
+.footer-bottom > .container {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+.assistant-float {
+  position: fixed;
+  right: 16px;
+  bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 15;
+  width: 61px;
+  min-height: 104px;
+}
+.assistant-float img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+.assistant-float span {
+  color: #a97800;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 21px;
+  text-align: center;
+}
+.scroll-top {
+  position: fixed;
+  right: 28px;
+  bottom: 120px;
+  width: 44px;
+  height: 44px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  z-index: 15;
+}
+.contact-float {
+  position: fixed;
+  left: 12px;
+  bottom: 20px;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  background: #f89c33;
+  color: #fff;
+  box-shadow: var(--common-shadow);
+  display: grid;
+  place-items: center;
+  z-index: 15;
+}
+.assistant-result {
+  display: grid;
+  gap: 4px;
+  padding: 14px 0;
+  border-bottom: 1px solid #eee;
+}
+.assistant-result small {
+  color: #666;
+}
 /* Responsive values from DESIGN.md §4, §9. */
 @media (min-width: 577px) {
   .header-container {
@@ -714,6 +842,24 @@ td small {
     font-size: 20px;
     line-height: 30px;
   }
+  .footer-grid {
+    grid-template-columns: 40% 26% 29%;
+    gap: 2.5%;
+  }
+  .footer-grid .logo {
+    font-size: 28px;
+  }
+  .footer-grid p {
+    font-size: 12px;
+  }
+  .footer-partner img {
+    width: 45px;
+    height: 45px;
+  }
+  .footer-partner {
+    font-size: 12px;
+    gap: 10px;
+  }
 }
 @media (max-width: 768px) {
   .container {
@@ -745,6 +891,46 @@ td small {
   .see-more {
     font-size: 18px;
     line-height: 27px;
+  }
+  .footer-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+  }
+  .footer-grid > div:first-child {
+    order: 2;
+  }
+  .footer-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 20px;
+  }
+  .footer-grid > div:last-child {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+  }
+  .footer-grid > div:last-child h3 {
+    flex-basis: 100%;
+    margin: 0;
+  }
+  .footer-grid > div:last-child > p {
+    flex-basis: 100%;
+    margin: 0;
+  }
+  .footer-partner {
+    width: 45%;
+    margin: 0;
+  }
+  .footer-grid p {
+    font-size: 13px;
+  }
+  .footer-grid .logo {
+    font-size: 30px;
+  }
+  .footer-bottom > .container {
+    flex-direction: column;
+    gap: 12px;
   }
 }
 @media (max-width: 576px) {
@@ -869,6 +1055,54 @@ td small {
   }
   .carousel-arrow {
     display: none;
+  }
+  .doctors .carousel {
+    gap: 24px;
+  }
+  .footer-grid .logo {
+    font-size: 29px;
+  }
+  .footer-grid .logo small {
+    display: none;
+  }
+  .footer-app {
+    font-size: 12px;
+  }
+  .footer-main {
+    padding-top: 25px;
+  }
+  .footer-bottom {
+    font-size: 11px;
+    padding-bottom: 35px;
+  }
+  .footer-bottom > .container {
+    gap: 9px;
+  }
+  .assistant-float {
+    right: 8px;
+    bottom: 6px;
+    width: 52px;
+    min-height: 90px;
+  }
+  .assistant-float > img {
+    width: 43px;
+    height: 43px;
+  }
+  .assistant-float span {
+    font-size: 12px;
+    line-height: 18px;
+  }
+  .scroll-top {
+    right: 13px;
+    bottom: 105px;
+    width: 38px;
+    height: 38px;
+  }
+  .contact-float {
+    left: 10px;
+    bottom: 15px;
+    width: 45px;
+    height: 45px;
   }
   .page {
     padding-block: 15px 30px;
