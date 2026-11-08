@@ -29,6 +29,7 @@ public class CamsAuthContext {
 
     public static final String COOKIE_NAME = "cams_session";
     public static final long SESSION_TTL_SECONDS = 8 * 3600;
+    private static final String CSRF_HEADER = "X-CSRF-Token";
 
     private final CamsSessionRepository sessionRepository;
     private final CamsUserRepository userRepository;
@@ -53,6 +54,15 @@ public class CamsAuthContext {
                 .orElseThrow(() -> unauthorized);
         CamsUser user = userRepository.findByIdAndActiveTrue(session.getUserId()).orElseThrow(() -> unauthorized);
         return new Authenticated(user, session);
+    }
+
+    /** Non-GET requests must echo the session's CSRF token in the X-CSRF-Token header. */
+    public void requireCsrf(HttpServletRequest request, CamsSession session) {
+        String provided = request.getHeader(CSRF_HEADER);
+        boolean ok = provided != null && constantTimeEquals(provided, session.getCsrf());
+        if (!ok) {
+            throw new CamsApiException(403, "Phiên thao tác không hợp lệ. Tải lại trang.", "csrf_failed");
+        }
     }
 
     /** Creates a new session row and sets the HttpOnly cookie on the response; returns {user, csrf} data. */
@@ -114,6 +124,10 @@ public class CamsAuthContext {
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private boolean constantTimeEquals(String a, String b) {
+        return MessageDigest.isEqual(a.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8));
     }
 
     public record Authenticated(CamsUser user, CamsSession session) {
