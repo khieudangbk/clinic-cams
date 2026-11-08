@@ -706,8 +706,22 @@ td small {
     width: 768px;
     padding: 0;
   }
+  .media-card {
+    width: 322px;
+  }
   .carousel {
     gap: 40px;
+  }
+  .doctor-card {
+    width: 216px;
+  }
+  .doctor-card h3 {
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .doctor-card p {
+    font-size: 14px;
+    line-height: 21px;
   }
   .section-heading h2 {
     font-size: 20px;
@@ -740,8 +754,14 @@ td small {
   .header-actions {
     margin-left: auto;
   }
+  .media-card {
+    width: 309px;
+  }
   .carousel {
     gap: 32px;
+  }
+  .doctor-card {
+    width: 212px;
   }
   .section-heading h2 {
     font-size: 24px;
@@ -751,6 +771,9 @@ td small {
     font-size: 20px;
     line-height: 30px;
     padding: 10px 8px;
+  }
+  .article-card {
+    width: 270px;
   }
   .inner-header .header-container {
     min-height: 78px;
@@ -787,8 +810,25 @@ td small {
   .inner-header .header-container {
     width: 1200px;
   }
+  .media-card {
+    width: 373px;
+  }
   .carousel {
     gap: 40px;
+  }
+  .doctor-card {
+    width: 264px;
+  }
+  .doctor-card h3 {
+    font-size: 18px;
+    line-height: 27px;
+  }
+  .doctor-card p {
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .article-card {
+    width: 270px;
   }
 }
 @media (min-width: 1401px) {
@@ -841,6 +881,18 @@ td small {
   .section-heading h2 {
     font-size: 20px;
     line-height: 30px;
+  }
+  .media-card {
+    width: 322px;
+  }
+  .doctor-card {
+    width: 216px;
+  }
+  .doctor-card h3 {
+    font-size: 16px;
+  }
+  .doctor-card p {
+    font-size: 14px;
   }
   .footer-grid {
     grid-template-columns: 40% 26% 29%;
@@ -1053,11 +1105,71 @@ td small {
   .carousel {
     gap: 16px;
   }
+  .media-card {
+    width: 152px;
+    padding: 8px;
+    border: 1.5px solid #f1f1f1;
+    border-radius: 12px;
+  }
+  .media-card > img,
+  .media-image {
+    border-radius: 4px;
+    aspect-ratio: 10/6;
+  }
+  .media-card h3 {
+    font-size: 14px;
+    line-height: 21px;
+    font-weight: 400;
+    min-height: 40px;
+    margin: 8px 0 0;
+  }
+  .facility-card > img {
+    aspect-ratio: 20/10;
+  }
   .carousel-arrow {
     display: none;
   }
+  .doctor-card {
+    width: 128px;
+  }
   .doctors .carousel {
     gap: 24px;
+  }
+  .doctor-card > img {
+    width: 92%;
+  }
+  .doctor-card h3 {
+    font-size: 14px;
+    line-height: 21px;
+    font-weight: 500;
+    margin: 10px 0 0;
+  }
+  .doctor-card p {
+    display: none;
+  }
+  .video-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    left: 6px;
+    top: 6px;
+  }
+  .video-badge svg {
+    width: 16px;
+    height: 16px;
+  }
+  .article-card {
+    width: 213px;
+    border-radius: 12px;
+  }
+  .article-card > img {
+    border-radius: 12px;
+  }
+  .article-card h3 {
+    font-size: 14px;
+    line-height: 21px;
+    margin-top: 14px;
+    font-weight: 600;
   }
   .footer-grid .logo {
     font-size: 29px;
@@ -1121,6 +1233,16 @@ td small {
     top: 12px;
     max-width: calc(100% - 24px);
     font-size: 12px;
+  }
+  .index-card {
+    width: 220px;
+    border-radius: 6px;
+  }
+  .index-card h3 {
+    font-size: 14px;
+    line-height: 21px;
+    font-weight: 500;
+    margin-top: 8px;
   }
   .modal {
     padding: 22px;
