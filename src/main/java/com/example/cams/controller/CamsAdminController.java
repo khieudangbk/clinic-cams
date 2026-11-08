@@ -113,4 +113,19 @@ public class CamsAdminController {
         return Map.of("ok", true);
     }
 
+    @Operation(summary = "Cập nhật cấu hình",
+            description = "Chỉ chấp nhận slot_minutes, cutoff_hours, max_reschedules, mỗi giá trị trong khoảng quy định. Chỉ quản lý.")
+    @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
+    @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
+    @ApiResponse(responseCode = "200", description = "Đã lưu", content = @Content(schema = @Schema(implementation = CamsApiModels.OkResponse.class)))
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Cấu hình cần đổi", required = true,
+            content = @Content(schema = @Schema(implementation = CamsApiModels.UpdateSettingsRequest.class)))
+    @PostMapping("/settings")
+    public Map<String, Object> updateSettings(HttpServletRequest request, @RequestBody Map<String, Object> body) {
+        originGuard.check(request);
+        CamsAuthContext.Authenticated auth = authContext.authenticate(request);
+        requireManager(request, auth, true);
+        adminService.updateSettings(body);
+        return Map.of("ok", true);
+    }
 }

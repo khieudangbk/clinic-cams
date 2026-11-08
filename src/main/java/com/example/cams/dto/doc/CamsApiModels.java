@@ -307,4 +307,10 @@ public final class CamsApiModels {
             @Schema(description = "Tên chuyên khoa, 1-100 ký tự.", example = "Nhi khoa") String name) {
     }
 
+    @Schema(description = "Cập nhật cấu hình; chỉ gửi các khóa cần đổi, ít nhất một khóa.")
+    public record UpdateSettingsRequest(
+            @JsonProperty("slot_minutes") @Schema(description = "Độ dài mỗi khung giờ (phút), 5-120.", example = "30") Integer slotMinutes,
+            @JsonProperty("cutoff_hours") @Schema(description = "Phải đổi/hủy trước giờ hẹn tối thiểu bao nhiêu giờ, 0-72.", example = "2") Integer cutoffHours,
+            @JsonProperty("max_reschedules") @Schema(description = "Số lần đổi lịch tối đa, 0-10.", example = "2") Integer maxReschedules) {
+    }
 }
