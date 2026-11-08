@@ -394,34 +394,123 @@ td small {
     width: 768px;
     padding-inline: 0;
   }
+  .carousel {
+    gap: 40px;
+  }
+  .section-heading h2 {
+    font-size: 20px;
+    line-height: 30px;
+  }
+  .see-more {
+    font-size: 18px;
+    line-height: 27px;
+    padding: 10px 6px;
+  }
 }
 @media (min-width: 993px) {
   .container {
     width: 992px;
+  }
+  .carousel {
+    gap: 32px;
+  }
+  .section-heading h2 {
+    font-size: 24px;
+    line-height: 36px;
+  }
+  .see-more {
+    font-size: 20px;
+    line-height: 30px;
+    padding: 10px 8px;
   }
 }
 @media (min-width: 1201px) {
   .container {
     width: 1200px;
   }
+  .carousel {
+    gap: 40px;
+  }
+}
+@media (max-width: 992px) {
+  .section-heading {
+    margin-bottom: 24px;
+  }
+  .section-heading h2 {
+    font-size: 20px;
+    line-height: 30px;
+  }
 }
 @media (max-width: 768px) {
   .container {
     padding-inline: 15px;
   }
+  .carousel {
+    gap: 24px;
+  }
+  .carousel-arrow.next {
+    right: 12px;
+  }
+  .carousel-arrow.prev {
+    left: 12px;
+  }
+  .section-heading h2 {
+    font-size: 20px;
+  }
+  .see-more {
+    font-size: 18px;
+    line-height: 27px;
+  }
 }
 @media (max-width: 576px) {
+  .home-section {
+    padding-block: 20px;
+  }
+  .section-heading {
+    margin-bottom: 16px;
+    gap: 12px;
+  }
+  .section-heading h2 {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+  .see-more {
+    padding: 10px 0;
+    font-size: 14px;
+    line-height: 21px;
+    background: transparent;
+    border-radius: 0;
+  }
+  .carousel {
+    gap: 16px;
+  }
+  .carousel-arrow {
+    display: none;
+  }
   .page {
     padding-block: 15px 30px;
   }
   .page h1 {
     font-size: 22px;
   }
+  .breadcrumb {
+    font-size: 12px;
+  }
+  .breadcrumb span[aria-current] {
+    display: none;
+  }
   .toast {
     right: 12px;
     top: 12px;
     max-width: calc(100% - 24px);
     font-size: 12px;
+  }
+  .modal {
+    padding: 22px;
+  }
+  .modal h2 {
+    font-size: 18px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -431,5 +520,14 @@ td small {
     scroll-behavior: auto !important;
     animation: none !important;
     transition: none !important;
+  }
+}
+/* Keep carousel controls inside the narrow desktop gutter (1024px QA). */
+@media (min-width: 769px) and (max-width: 1050px) {
+  .carousel-arrow.next {
+    right: 0;
+  }
+  .carousel-arrow.prev {
+    left: 0;
   }
 }
