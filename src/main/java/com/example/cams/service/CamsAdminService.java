@@ -96,4 +96,33 @@ public class CamsAdminService {
         return user.getId();
     }
 
+    @Transactional
+    public void updateStaffUser(Long id, Map<String, Object> data) {
+        CamsUser user = userRepository.findById(id)
+                .filter(u -> u.getRole() == CamsRole.doctor || u.getRole() == CamsRole.receptionist)
+                .orElseThrow(() -> new CamsApiException(404, "Tài khoản không thuộc phạm vi quản trị."));
+
+        String name = data.containsKey("name") ? text(data.get("name"), "Họ tên", 100) : user.getName();
+        Object activeRaw = data.getOrDefault("active", user.isActive() ? 1 : 0);
+        require(Integer.valueOf(1).equals(activeRaw) || Integer.valueOf(0).equals(activeRaw)
+                || Boolean.TRUE.equals(activeRaw) || Boolean.FALSE.equals(activeRaw), "Trạng thái tài khoản không hợp lệ.");
+        boolean active = Integer.valueOf(1).equals(activeRaw) || Boolean.TRUE.equals(activeRaw);
+
+        Long specialtyId = data.containsKey("specialty_id")
+                ? (data.get("specialty_id") == null ? null : integer(data.get("specialty_id"), "Chuyên khoa"))
+                : user.getSpecialtyId();
+        if (user.getRole() == CamsRole.doctor) {
+            require(specialtyId != null && specialtyRepository.findById(specialtyId).isPresent(),
+                    "Chuyên khoa không tồn tại.");
+        }
+
+        user.setName(name);
+        user.setActive(active);
+        user.setSpecialtyId(specialtyId);
+        userRepository.save(user);
+        if (!active) {
+            sessionRepository.deleteByUserId(id);
+        }
+    }
+
 }

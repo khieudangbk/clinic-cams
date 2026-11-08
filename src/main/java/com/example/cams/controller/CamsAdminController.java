@@ -79,4 +79,22 @@ public class CamsAdminController {
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("id", id));
     }
 
+    @Operation(summary = "Cập nhật tài khoản nhân sự",
+            description = "Đổi tên, khóa/mở khóa hoặc đổi chuyên khoa; chỉ các trường được gửi mới thay đổi. Chỉ quản lý.")
+    @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
+    @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
+    @ApiResponse(responseCode = "200", description = "Đã cập nhật", content = @Content(schema = @Schema(implementation = CamsApiModels.OkResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Tài khoản không thuộc phạm vi quản trị", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Các trường cần đổi", required = true,
+            content = @Content(schema = @Schema(implementation = CamsApiModels.UpdateStaffUserRequest.class)))
+    @PostMapping("/users/{id}")
+    public Map<String, Object> updateUser(HttpServletRequest request, @Parameter(description = "Id tài khoản", example = "4") @PathVariable Long id,
+            @RequestBody Map<String, Object> body) {
+        originGuard.check(request);
+        CamsAuthContext.Authenticated auth = authContext.authenticate(request);
+        requireManager(request, auth, true);
+        adminService.updateStaffUser(id, body);
+        return Map.of("ok", true);
+    }
+
 }
