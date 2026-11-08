@@ -463,6 +463,11 @@ td small {
   white-space: nowrap;
   color: #111;
 }
+.category-tabs a.active {
+  background: var(--cta);
+  color: #41370f;
+  font-weight: 700;
+}
 .header-actions {
   display: flex;
   align-items: center;
@@ -682,6 +687,57 @@ td small {
   color: var(--deep);
   white-space: nowrap;
 }
+.service-grid {
+  display: grid;
+  grid-template-columns: 48% 48%;
+  justify-content: space-between;
+  row-gap: 36px;
+}
+.service-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10%;
+  height: 100px;
+  border: 2px solid #f1f1f1;
+  border-radius: 25px;
+  padding: 12px 20px;
+  color: #333;
+  background: linear-gradient(135deg, transparent 75%, #eff9fb 75%, transparent 80%), #fff;
+  overflow: hidden;
+}
+.service-tile:after {
+  content: '+';
+  position: absolute;
+  right: 30px;
+  top: -28px;
+  color: #eff8fa;
+  font-size: 100px;
+  font-weight: 700;
+  pointer-events: none;
+  z-index: 0;
+}
+.service-tile strong {
+  font-size: 24px;
+  line-height: 36px;
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
+}
+.service-halo {
+  display: grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffd354, #ffefc3, #fefdfb, #fff);
+  flex-shrink: 0;
+}
+.service-halo img {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+}
 .carousel-wrap {
   position: relative;
 }
@@ -740,6 +796,34 @@ td small {
 .facility-card h3 {
   font-size: 18px;
 }
+.facility-info-card {
+  width: 373px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 35px 25px;
+  text-align: center;
+  background: #f5fcfd;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #34929e;
+}
+.facility-info-card > svg {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 20px;
+}
+.facility-info-card h3 {
+  font-size: 20px;
+}
+.facility-info-card p {
+  font-size: 14px;
+  color: #666;
+}
+.facility-info-card span {
+  font-size: 13px;
+}
 .carousel-arrow {
   position: absolute;
   z-index: 2;
@@ -788,6 +872,37 @@ td small {
   color: #626262;
   margin: 0;
 }
+.doctors-band {
+  background: #e5f8fa url('/media/background-doctors.png') center/cover;
+}
+.suggestion img {
+  background: #fff;
+  object-fit: cover;
+}
+.promotion-carousel > a {
+  display: block;
+}
+.promotion-carousel img {
+  width: 100%;
+  aspect-ratio: 3;
+  border-radius: 32px;
+  object-fit: cover;
+}
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 17px 0 5px;
+}
+.carousel-dots button {
+  width: 8px;
+  height: 8px;
+  border-radius: 10px;
+  background: #ffdc75;
+}
+.carousel-dots button.active {
+  background: var(--cta);
+}
 .media-image {
   position: relative;
   overflow: hidden;
@@ -808,6 +923,14 @@ td small {
   border-radius: 8px;
   display: grid;
   place-items: center;
+}
+.section-note {
+  font-size: 12px;
+  color: #888;
+  margin: 10px 0 0;
+}
+.wellness-band {
+  background: #f2fbf7 url('/media/background-wellness.png') center/cover;
 }
 .article-card {
   width: 270px;
@@ -833,6 +956,67 @@ td small {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+.press-band {
+  background: #eff9fd url('/media/background-press.png') center/cover;
+}
+.press-band .section-heading {
+  justify-content: center;
+}
+.press-band .section-heading h2 {
+  font-size: 32px;
+  line-height: 48px;
+}
+.about-platform {
+  display: grid;
+  grid-template-columns: 49% 49%;
+  justify-content: space-between;
+  align-items: center;
+}
+.platform-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  color: #385c6a;
+  text-align: center;
+}
+.platform-visual > img {
+  max-height: 230px;
+  object-fit: contain;
+}
+.platform-visual > strong {
+  font-size: 16px;
+}
+.benefit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px 20px;
+}
+.benefit-grid > a {
+  height: 65px;
+  background: #fff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  padding: 10px;
+  color: #4794a4;
+  font-size: 13px;
+  font-weight: 600;
+}
+.benefit-grid svg {
+  width: 24px;
+}
+.category-notice {
+  padding-block: 20px;
+  color: #555;
+}
+.category-notice strong {
+  font-size: 20px;
+}
+.category-notice p {
+  margin-top: 10px;
 }
 /* 8.17–8.19 Footer and floating helpers. */
 .footer-main {
@@ -977,6 +1161,22 @@ td small {
     width: 768px;
     padding: 0;
   }
+  .service-halo {
+    width: 62px;
+    height: 62px;
+  }
+  .service-tile strong {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+  .service-tile {
+    padding: 14px;
+    border-radius: 25px;
+  }
+  .service-grid {
+    row-gap: 32px;
+  }
   .media-card {
     width: 322px;
   }
@@ -1024,6 +1224,21 @@ td small {
   }
   .header-actions {
     margin-left: auto;
+  }
+  .service-halo {
+    width: 80px;
+    height: 80px;
+  }
+  .service-tile strong {
+    font-size: 24px;
+    line-height: 36px;
+    font-weight: 700;
+  }
+  .service-tile {
+    padding: 12px 20px;
+  }
+  .service-grid {
+    row-gap: 36px;
   }
   .media-card {
     width: 309px;
@@ -1083,6 +1298,9 @@ td small {
   }
   .inner-header .header-container {
     width: 1200px;
+  }
+  .service-tile {
+    height: 100px;
   }
   .media-card {
     width: 373px;
@@ -1170,6 +1388,19 @@ td small {
     font-size: 20px;
     line-height: 30px;
   }
+  .service-tile strong {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+  .service-halo {
+    width: 62px;
+    height: 62px;
+  }
+  .service-tile {
+    gap: 10%;
+    height: 100px;
+  }
   .media-card {
     width: 322px;
   }
@@ -1181,6 +1412,19 @@ td small {
   }
   .doctor-card p {
     font-size: 14px;
+  }
+  .press-band .section-heading h2 {
+    font-size: 20px;
+    line-height: 30px;
+  }
+  .benefit-grid {
+    gap: 15px;
+  }
+  .benefit-grid > a {
+    font-size: 11px;
+    padding: 10px;
+    gap: 8px;
+    height: 55px;
   }
   .footer-grid {
     grid-template-columns: 40% 26% 29%;
@@ -1216,6 +1460,23 @@ td small {
   .category-tabs a {
     font-size: 18px;
   }
+  .service-grid {
+    row-gap: 24px;
+  }
+  .service-tile {
+    height: 90px;
+    border-radius: 20px;
+    padding: 14px;
+    gap: 10px;
+  }
+  .service-halo {
+    width: 55px;
+    height: 55px;
+  }
+  .service-tile strong {
+    font-size: 16px;
+    font-weight: 600;
+  }
   .carousel {
     gap: 24px;
   }
@@ -1224,6 +1485,9 @@ td small {
   }
   .carousel-arrow.prev {
     left: 12px;
+  }
+  .promotion-carousel img {
+    border-radius: 15px;
   }
   .section-heading h2 {
     font-size: 20px;
@@ -1271,6 +1535,27 @@ td small {
   .footer-bottom > .container {
     flex-direction: column;
     gap: 12px;
+  }
+  .about-platform {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .platform-visual img {
+    max-height: 190px;
+  }
+  .benefit-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .benefit-grid a {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    height: 75px;
+    font-size: 10px;
+  }
+  .benefit-grid svg {
+    width: 20px;
   }
 }
 @media (max-width: 576px) {
@@ -1436,6 +1721,31 @@ td small {
     background: transparent;
     border-radius: 0;
   }
+  .service-grid {
+    row-gap: 16px;
+    grid-template-columns: 48% 48%;
+  }
+  .service-tile {
+    height: 80px;
+    border-radius: 15px;
+    padding: 8px;
+    gap: 10px;
+  }
+  .service-tile:after {
+    right: 8px;
+    top: -23px;
+    font-size: 85px;
+  }
+  .service-halo {
+    width: 44px;
+    height: 44px;
+  }
+  .service-tile strong {
+    font-size: 14px;
+    line-height: 21px;
+    font-weight: 500;
+    max-width: 100px;
+  }
   .carousel {
     gap: 16px;
   }
@@ -1460,6 +1770,28 @@ td small {
   .facility-card > img {
     aspect-ratio: 20/10;
   }
+  .facility-info-card {
+    width: 152px;
+    border-radius: 12px;
+    padding: 15px 12px;
+  }
+  .facility-info-card > svg {
+    width: 35px;
+    height: 35px;
+    margin-bottom: 10px;
+  }
+  .facility-info-card h3 {
+    font-size: 13px;
+    line-height: 20px;
+    margin-bottom: 8px;
+  }
+  .facility-info-card p {
+    font-size: 10px;
+    margin-bottom: 10px;
+  }
+  .facility-info-card span {
+    font-size: 10px;
+  }
   .carousel-arrow {
     display: none;
   }
@@ -1481,6 +1813,12 @@ td small {
   .doctor-card p {
     display: none;
   }
+  .promotion-carousel img {
+    border-radius: 15px;
+  }
+  .carousel-dots {
+    padding: 12px 0 0;
+  }
   .video-badge {
     width: 24px;
     height: 24px;
@@ -1491,6 +1829,9 @@ td small {
   .video-badge svg {
     width: 16px;
     height: 16px;
+  }
+  .section-note {
+    font-size: 10px;
   }
   .article-card {
     width: 213px;
@@ -1504,6 +1845,22 @@ td small {
     line-height: 21px;
     margin-top: 14px;
     font-weight: 600;
+  }
+  .press-band .section-heading h2 {
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .platform-visual > strong {
+    font-size: 12px;
+  }
+  .benefit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .benefit-grid a {
+    flex-direction: row;
+    height: 55px;
+    font-size: 11px;
   }
   .footer-grid .logo {
     font-size: 29px;
