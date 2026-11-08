@@ -4,7 +4,7 @@ import { useApp } from './context';
 import { Loading, ErrorBox } from './components/UI';
 import { PublicLayout } from './components/Layout';
 import Home from './pages/Home';
-import { Specialties, SpecialtyDetail } from './pages/Discovery';
+import { Specialties, SpecialtyDetail, DoctorList } from './pages/Discovery';
 export default function App() {
   const { ready, error, catalog } = useApp();
   const { pathname } = useLocation();
@@ -44,6 +44,8 @@ export default function App() {
         ))}
         <Route path="/chuyen-khoa" element={<Specialties />} />
         <Route path="/chuyen-khoa/:id" element={<SpecialtyDetail />} />
+        <Route path="/bac-si" element={<DoctorList />} />
+        <Route path="/tim-kiem" element={<DoctorList />} />
         <Route
           path="*"
           element={

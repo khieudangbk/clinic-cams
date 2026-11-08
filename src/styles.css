@@ -1179,6 +1179,26 @@ td small {
 .listing-grid .doctor-card {
   width: 100%;
 }
+.search-filters {
+  display: flex;
+  gap: 15px;
+  align-items: flex-end;
+  background: #f8fafb;
+  padding: 20px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-block: 25px;
+}
+.search-filters label {
+  flex: 1;
+  margin: 0;
+}
+.search-filters button {
+  white-space: nowrap;
+}
+.result-count {
+  color: #666;
+}
 .specialty-detail {
   background: #eee;
 }
@@ -1683,6 +1703,18 @@ td small {
   .benefit-grid svg {
     width: 20px;
   }
+  .search-filters {
+    flex-wrap: wrap;
+    padding: 15px;
+    gap: 10px;
+  }
+  .search-filters label:first-child {
+    flex-basis: 100%;
+  }
+  .search-filters button {
+    font-size: 12px;
+    padding: 10px 12px;
+  }
 }
 @media (max-width: 576px) {
   .smart-banner {
@@ -2054,6 +2086,22 @@ td small {
     font-size: 14px;
     line-height: 21px;
     font-weight: 600;
+  }
+  .doctor-list .doctor-card h3 {
+    margin-top: 10px;
+  }
+  .search-filters label {
+    min-width: 0;
+    flex: 1;
+  }
+  .search-filters select {
+    font-size: 12px;
+  }
+  .search-filters button {
+    flex: 1;
+  }
+  .result-count {
+    font-size: 12px;
   }
   .doctor-booking-intro {
     padding-top: 5px;
