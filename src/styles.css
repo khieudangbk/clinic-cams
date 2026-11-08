@@ -1146,6 +1146,111 @@ td small {
 .assistant-result small {
   color: #666;
 }
+/* 10.2–10.4 Listings and legacy doctor/specialty pages. */
+.listing-heading {
+  font-size: 20px;
+  line-height: 30px;
+  font-weight: 700;
+}
+.listing-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 25px 1.33%;
+  padding: 20px 0;
+  border-top: 1px solid #e7e5e5;
+}
+.listing-grid .media-card {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  text-align: left;
+}
+.listing-grid .media-card img {
+  aspect-ratio: 16/9;
+  border-radius: 4px;
+}
+.listing-grid .media-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 8px;
+  line-height: 24px;
+}
+.listing-grid .doctor-card {
+  width: 100%;
+}
+.specialty-detail {
+  background: #eee;
+}
+.specialty-intro {
+  padding: 10px 0;
+  background-size: cover;
+  background-position: center;
+  min-height: 200px;
+}
+.specialty-intro h1 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.specialty-intro p {
+  font-size: 14px;
+  line-height: 21px;
+  margin-bottom: 5px;
+}
+.region-filter {
+  font-size: 12px;
+  color: #777;
+  max-width: 220px;
+}
+.region-filter select {
+  height: 38px;
+  font-size: 16px;
+  border: 1px solid #ced4da;
+  width: 220px;
+}
+.doctor-booking-card {
+  display: flex;
+  gap: 15px;
+  background: #fff;
+  box-shadow: var(--common-shadow);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  min-height: 33vh;
+}
+.doctor-booking-intro {
+  width: 44%;
+  display: flex;
+  gap: 15px;
+  padding: 15px 15px 0 0;
+  border-right: 1px solid #eee;
+}
+.doctor-booking-intro > a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 13px;
+  gap: 12px;
+  width: 80px;
+}
+.doctor-booking-intro img {
+  width: 80px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.doctor-booking-intro h2 {
+  font-size: 18px;
+  line-height: 27px;
+  margin-bottom: 8px;
+  color: #337ab7;
+}
+.doctor-booking-intro p {
+  color: #555;
+  margin-bottom: 8px;
+}
 /* Responsive values from DESIGN.md §4, §9. */
 @media (min-width: 577px) {
   .header-container {
@@ -1202,6 +1307,9 @@ td small {
     font-size: 18px;
     line-height: 27px;
     padding: 10px 6px;
+  }
+  .listing-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 @media (min-width: 993px) {
@@ -1322,6 +1430,9 @@ td small {
   .article-card {
     width: 270px;
   }
+  .listing-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
   .ai-card {
     width: 377px;
   }
@@ -1426,6 +1537,9 @@ td small {
     gap: 8px;
     height: 55px;
   }
+  .listing-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
   .footer-grid {
     grid-template-columns: 40% 26% 29%;
     gap: 2.5%;
@@ -1495,6 +1609,18 @@ td small {
   .see-more {
     font-size: 18px;
     line-height: 27px;
+  }
+  .listing-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 2%;
+  }
+  .doctor-booking-card {
+    display: block;
+    min-height: 45vh;
+  }
+  .doctor-booking-intro {
+    width: 100%;
+    border: 0;
   }
   .footer-grid {
     display: flex;
@@ -1918,6 +2044,33 @@ td small {
   }
   .breadcrumb span[aria-current] {
     display: none;
+  }
+  .listing-grid {
+    grid-template-columns: 49% 49%;
+    gap: 22px 2%;
+    padding-top: 15px;
+  }
+  .listing-grid .media-card h3 {
+    font-size: 14px;
+    line-height: 21px;
+    font-weight: 600;
+  }
+  .doctor-booking-intro {
+    padding-top: 5px;
+  }
+  .doctor-booking-intro h2 {
+    font-size: 16px;
+  }
+  .doctor-booking-intro p {
+    font-size: 12px;
+  }
+  .doctor-booking-intro img {
+    width: 70px;
+    height: 70px;
+  }
+  .doctor-booking-intro > a {
+    width: 70px;
+    font-size: 11px;
   }
   .toast {
     right: 12px;

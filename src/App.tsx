@@ -4,6 +4,7 @@ import { useApp } from './context';
 import { Loading, ErrorBox } from './components/UI';
 import { PublicLayout } from './components/Layout';
 import Home from './pages/Home';
+import { Specialties, SpecialtyDetail } from './pages/Discovery';
 export default function App() {
   const { ready, error, catalog } = useApp();
   const { pathname } = useLocation();
@@ -41,6 +42,8 @@ export default function App() {
         {['/', '/tai-nha', '/tai-vien', '/song-khoe'].map((path) => (
           <Route path={path} element={<Home />} key={path} />
         ))}
+        <Route path="/chuyen-khoa" element={<Specialties />} />
+        <Route path="/chuyen-khoa/:id" element={<SpecialtyDetail />} />
         <Route
           path="*"
           element={
