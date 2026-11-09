@@ -5,7 +5,6 @@ import com.example.cams.dto.response.catalog.DoctorInfo;
 import com.example.cams.dto.response.catalog.PublicCatalogResponse;
 import com.example.cams.dto.response.catalog.SpecialtyInfo;
 import com.example.cams.dto.response.schedule.ScheduleInfo;
-import com.example.cams.entity.CamsLeave;
 import com.example.cams.entity.CamsSchedule;
 import com.example.cams.entity.CamsSetting;
 import com.example.cams.entity.CamsSlot;
@@ -141,7 +140,7 @@ public class CamsCatalogService {
     /** Lazily materialises a doctor's slots for one calendar day, mirroring generate_slots(). */
     @Transactional
     public void generateSlots(Long doctorId, LocalDate day) {
-        CamsUser doctor = userRepository.findByIdAndActiveTrue(doctorId)
+        userRepository.findByIdAndActiveTrue(doctorId)
                 .filter(u -> u.getRole() == CamsRole.doctor)
                 .orElseThrow(() -> new CamsApiException(404, "Bác sĩ không tồn tại hoặc đã khóa."));
         CamsSchedule schedule = scheduleRepository.findByDoctorId(doctorId)
