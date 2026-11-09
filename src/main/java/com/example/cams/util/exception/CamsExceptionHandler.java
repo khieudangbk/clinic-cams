@@ -14,12 +14,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-/**
- * Scoped to the CAMS booking controllers only, so these endpoints answer with the same flat
- * {"error": "...", "code": "..."} shape as app.py — never the {success,message,data,...} envelope
- * the unrelated generic auth module's advices (GlobalExceptionHandler, FormatResponse) apply to
- * their own single controller (AuthController).
- */
+/** Returns the CAMS API error payload with error and code fields. */
 @RestControllerAdvice(assignableTypes = { CamsPublicController.class, CamsSessionController.class,
         CamsCatalogController.class, CamsAppointmentController.class, CamsLeaveController.class,
         CamsScheduleController.class, CamsAdminController.class })
