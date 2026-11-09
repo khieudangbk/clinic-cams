@@ -1,0 +1,25 @@
+{
+  "groups": [
+    {
+      "name": "cams",
+      "description": "CAMS-specific settings."
+    },
+    {
+      "name": "cors",
+      "description": "Cross-origin request settings."
+    }
+  ],
+  "properties": [
+    {
+      "name": "cams.demo-now",
+      "type": "java.lang.String",
+      "description": "Fixed ISO-8601 date and time with an offset for demo mode. Leave empty to use the system clock.",
+      "defaultValue": ""
+    },
+    {
+      "name": "cors.allowed-origins",
+      "type": "java.lang.String",
+      "description": "Comma-separated list of allowed frontend origins."
+    }
+  ]
+}
