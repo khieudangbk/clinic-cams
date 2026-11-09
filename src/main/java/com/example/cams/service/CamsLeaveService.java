@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.example.cams.service.CamsCatalogService.ACTIVE_STATUSES;
-import static com.example.cams.util.CamsValidation.integer;
+import static com.example.cams.util.CamsValidation.requiredInteger;
 import static com.example.cams.util.CamsValidation.require;
 import static com.example.cams.util.CamsValidation.text;
 
@@ -66,7 +66,7 @@ public class CamsLeaveService {
 
     @Transactional
     public CreateLeaveResponse create(CamsUser actor, CreateLeaveRequest data) {
-        long doctorId = actor.getRole() == CamsRole.doctor ? actor.getId() : integer(data.doctorId(), "Bác sĩ");
+        long doctorId = actor.getRole() == CamsRole.doctor ? actor.getId() : requiredInteger(data.doctorId(), "Bác sĩ");
         OffsetDateTime start = CamsTime.parseDatetime(data.startsAt());
         OffsetDateTime end = CamsTime.parseDatetime(data.endsAt());
         require(start.isBefore(end), "Ngày kết thúc phải sau ngày bắt đầu.");

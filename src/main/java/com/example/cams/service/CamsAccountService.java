@@ -12,7 +12,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.example.cams.util.CamsValidation.jsonValueOrDefault;
 import static com.example.cams.util.CamsValidation.require;
 import static com.example.cams.util.CamsValidation.text;
 
@@ -37,7 +36,7 @@ public class CamsAccountService {
         String email = text(data.email(), "Email", 150).toLowerCase();
         require(email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+"), "Email không hợp lệ.");
         String password = text(data.password(), "Mật khẩu", 128, 10);
-        String phone = text(jsonValueOrDefault(data.phone(), ""), "Số điện thoại", 20, 0);
+        String phone = text(data.phone() == null ? "" : data.phone(), "Số điện thoại", 20, 0);
         require(phone.isEmpty() || phone.matches("[+0-9 ()-]{8,20}"), "Số điện thoại không hợp lệ.");
 
         CamsUser user = new CamsUser();
