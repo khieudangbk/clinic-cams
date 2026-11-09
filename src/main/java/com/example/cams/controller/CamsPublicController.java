@@ -1,15 +1,15 @@
 package com.example.cams.controller;
 
 import com.example.cams.config.OpenApiConfig;
-import com.example.cams.dto.cams.CamsApiModels.HealthResponse;
-import com.example.cams.dto.cams.CamsApiModels.LoginRequest;
-import com.example.cams.dto.cams.CamsApiModels.LoginResponse;
-import com.example.cams.dto.cams.CamsApiModels.PublicCatalogResponse;
-import com.example.cams.dto.cams.CamsApiModels.RegisterRequest;
-import com.example.cams.dto.cams.CamsApiModels.RegisterResponse;
-import com.example.cams.dto.cams.CamsApiModels.SlotInfo;
-import com.example.cams.dto.cams.CamsApiModels.SlotsResponse;
-import com.example.cams.dto.cams.CamsApiModels;
+import com.example.cams.dto.request.account.LoginRequest;
+import com.example.cams.dto.request.account.RegisterRequest;
+import com.example.cams.dto.response.account.LoginResponse;
+import com.example.cams.dto.response.account.RegisterResponse;
+import com.example.cams.dto.response.catalog.PublicCatalogResponse;
+import com.example.cams.dto.response.common.ErrorResponse;
+import com.example.cams.dto.response.common.HealthResponse;
+import com.example.cams.dto.response.slot.SlotInfo;
+import com.example.cams.dto.response.slot.SlotsResponse;
 import com.example.cams.entity.CamsUser;
 import com.example.cams.security.CamsAuthContext;
 import com.example.cams.security.CamsOriginGuard;
@@ -59,7 +59,7 @@ public class CamsPublicController {
 
     @Operation(summary = "Kiểm tra tình trạng dịch vụ",
             description = "Trả về trạng thái dịch vụ và chế độ đồng hồ (demo hoặc thật).")
-    @ApiResponse(responseCode = "200", description = "Dịch vụ hoạt động", content = @Content(schema = @Schema(implementation = CamsApiModels.HealthResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Dịch vụ hoạt động", content = @Content(schema = @Schema(implementation = HealthResponse.class)))
     @GetMapping("/health")
     public HealthResponse health(HttpServletRequest request) {
         originGuard.check(request);
@@ -68,7 +68,7 @@ public class CamsPublicController {
 
     @Operation(summary = "Danh mục công khai",
             description = "Danh sách chuyên khoa và bác sĩ đang hoạt động cùng thời gian hệ thống. Dùng cho trang đặt lịch trước khi đăng nhập.")
-    @ApiResponse(responseCode = "200", description = "Danh mục", content = @Content(schema = @Schema(implementation = CamsApiModels.PublicCatalogResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Danh mục", content = @Content(schema = @Schema(implementation = PublicCatalogResponse.class)))
     @GetMapping("/public/catalog")
     public PublicCatalogResponse publicCatalog(HttpServletRequest request) {
         originGuard.check(request);
@@ -77,8 +77,8 @@ public class CamsPublicController {
 
     @Operation(summary = "Khung giờ còn trống của bác sĩ",
             description = "Sinh (nếu chưa có) và trả về các khung giờ còn trống của một bác sĩ trong một ngày. Khung giờ đã được đặt, đã qua hoặc rơi vào lịch nghỉ bị loại.")
-    @ApiResponse(responseCode = "200", description = "Danh sách khung giờ", content = @Content(schema = @Schema(implementation = CamsApiModels.SlotsResponse.class)))
-    @ApiResponse(responseCode = "400", description = "doctor_id hoặc day không hợp lệ", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Danh sách khung giờ", content = @Content(schema = @Schema(implementation = SlotsResponse.class)))
+    @ApiResponse(responseCode = "400", description = "doctor_id hoặc day không hợp lệ", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @GetMapping("/public/slots")
     public SlotsResponse publicSlots(HttpServletRequest request,
             @Parameter(description = "Id bác sĩ", example = "2") @RequestParam("doctor_id") String doctorIdParam,
@@ -110,10 +110,10 @@ public class CamsPublicController {
 
     @Operation(summary = "Đăng ký tài khoản bệnh nhân",
             description = "Tạo tài khoản vai trò patient. Email được chuẩn hóa chữ thường và phải duy nhất.")
-    @ApiResponse(responseCode = "201", description = "Đăng ký thành công", content = @Content(schema = @Schema(implementation = CamsApiModels.RegisterResponse.class)))
-    @ApiResponse(responseCode = "409", description = "Email đã được sử dụng (email_exists)", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @ApiResponse(responseCode = "201", description = "Đăng ký thành công", content = @Content(schema = @Schema(implementation = RegisterResponse.class)))
+    @ApiResponse(responseCode = "409", description = "Email đã được sử dụng (email_exists)", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin đăng ký", required = true,
-            content = @Content(schema = @Schema(implementation = CamsApiModels.RegisterRequest.class)))
+            content = @Content(schema = @Schema(implementation = RegisterRequest.class)))
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(HttpServletRequest request,
             @RequestBody RegisterRequest body) {
@@ -126,11 +126,11 @@ public class CamsPublicController {
 
     @Operation(summary = "Đăng nhập",
             description = "Xác thực email/mật khẩu, đặt cookie HttpOnly `cams_session` (SameSite=Strict, 8 giờ) và trả CSRF token. Sai 5 lần liên tiếp thì khóa email đó 60 giây.")
-    @ApiResponse(responseCode = "200", description = "Đăng nhập thành công", content = @Content(schema = @Schema(implementation = CamsApiModels.LoginResponse.class)))
-    @ApiResponse(responseCode = "401", description = "Sai email hoặc mật khẩu (invalid_credentials)", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
-    @ApiResponse(responseCode = "429", description = "Bị khóa tạm thời (rate_limited)", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Đăng nhập thành công", content = @Content(schema = @Schema(implementation = LoginResponse.class)))
+    @ApiResponse(responseCode = "401", description = "Sai email hoặc mật khẩu (invalid_credentials)", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "429", description = "Bị khóa tạm thời (rate_limited)", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Email và mật khẩu", required = true,
-            content = @Content(schema = @Schema(implementation = CamsApiModels.LoginRequest.class)))
+            content = @Content(schema = @Schema(implementation = LoginRequest.class)))
     @PostMapping("/login")
     public LoginResponse login(HttpServletRequest request, HttpServletResponse response,
             @RequestBody LoginRequest body) {

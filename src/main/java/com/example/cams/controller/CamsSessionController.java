@@ -1,9 +1,8 @@
 package com.example.cams.controller;
 
 import com.example.cams.config.OpenApiConfig;
-import com.example.cams.dto.cams.CamsApiModels.OkResponse;
-import com.example.cams.dto.cams.CamsApiModels.SessionResponse;
-import com.example.cams.dto.cams.CamsApiModels;
+import com.example.cams.dto.response.account.SessionResponse;
+import com.example.cams.dto.response.common.OkResponse;
 import com.example.cams.security.CamsAuthContext;
 import com.example.cams.security.CamsOriginGuard;
 import com.example.cams.service.CamsCatalogService;
@@ -47,7 +46,7 @@ public class CamsSessionController {
     @Operation(summary = "Phiên hiện tại",
             description = "Trả về người dùng đang đăng nhập, CSRF token, cấu hình hệ thống và giờ hệ thống.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
-    @ApiResponse(responseCode = "200", description = "Thông tin phiên", content = @Content(schema = @Schema(implementation = CamsApiModels.SessionResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Thông tin phiên", content = @Content(schema = @Schema(implementation = SessionResponse.class)))
     @GetMapping("/session")
     public SessionResponse session(HttpServletRequest request) {
         originGuard.check(request);
@@ -63,7 +62,7 @@ public class CamsSessionController {
             description = "Xóa phiên phía máy chủ và xóa cookie `cams_session`.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
-    @ApiResponse(responseCode = "200", description = "Đã đăng xuất", content = @Content(schema = @Schema(implementation = CamsApiModels.OkResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Đã đăng xuất", content = @Content(schema = @Schema(implementation = OkResponse.class)))
     @PostMapping("/logout")
     public OkResponse logout(HttpServletRequest request, HttpServletResponse response) {
         originGuard.check(request);

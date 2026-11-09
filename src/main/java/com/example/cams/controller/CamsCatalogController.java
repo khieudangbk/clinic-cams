@@ -1,10 +1,9 @@
 package com.example.cams.controller;
 
 import com.example.cams.config.OpenApiConfig;
-import com.example.cams.dto.cams.CamsApiModels.CatalogResponse;
-import com.example.cams.dto.cams.CamsApiModels.SlotInfo;
-import com.example.cams.dto.cams.CamsApiModels.SlotsResponse;
-import com.example.cams.dto.cams.CamsApiModels;
+import com.example.cams.dto.response.catalog.CatalogResponse;
+import com.example.cams.dto.response.slot.SlotInfo;
+import com.example.cams.dto.response.slot.SlotsResponse;
 import com.example.cams.entity.CamsUser;
 import com.example.cams.entity.enums.CamsRole;
 import com.example.cams.security.CamsAuthContext;
@@ -51,7 +50,7 @@ public class CamsCatalogController {
     @Operation(summary = "Danh mục đầy đủ",
             description = "Chuyên khoa, bác sĩ đang hoạt động và mẫu giờ làm việc tuần của từng bác sĩ.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
-    @ApiResponse(responseCode = "200", description = "Danh mục", content = @Content(schema = @Schema(implementation = CamsApiModels.CatalogResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Danh mục", content = @Content(schema = @Schema(implementation = CatalogResponse.class)))
     @GetMapping("/catalog")
     public CatalogResponse catalog(HttpServletRequest request) {
         originGuard.check(request);
@@ -62,7 +61,7 @@ public class CamsCatalogController {
     @Operation(summary = "Khung giờ còn trống (đã đăng nhập)",
             description = "Như `/api/public/slots` nhưng bao gồm doctor_id. Bác sĩ chỉ được xem lịch của chính mình.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
-    @ApiResponse(responseCode = "200", description = "Danh sách khung giờ", content = @Content(schema = @Schema(implementation = CamsApiModels.SlotsResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Danh sách khung giờ", content = @Content(schema = @Schema(implementation = SlotsResponse.class)))
     @GetMapping("/slots")
     public SlotsResponse slots(HttpServletRequest request, @Parameter(description = "Id bác sĩ", example = "2") @RequestParam("doctor_id") String doctorIdParam,
             @Parameter(description = "Ngày cần xem, định dạng yyyy-MM-dd", example = "2026-11-24") @RequestParam("day") String dayParam) {

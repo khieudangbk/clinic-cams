@@ -1,7 +1,7 @@
 package com.example.cams.service;
 
-import com.example.cams.dto.cams.CamsApiModels.LoginRequest;
-import com.example.cams.dto.cams.CamsApiModels.RegisterRequest;
+import com.example.cams.dto.request.account.LoginRequest;
+import com.example.cams.dto.request.account.RegisterRequest;
 import com.example.cams.entity.CamsUser;
 import com.example.cams.entity.enums.CamsRole;
 import com.example.cams.repository.CamsUserRepository;

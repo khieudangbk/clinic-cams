@@ -1,6 +1,6 @@
 package com.example.cams.service;
 
-import com.example.cams.dto.cams.CamsApiModels.SaveScheduleRequest;
+import com.example.cams.dto.request.schedule.SaveScheduleRequest;
 import com.example.cams.entity.CamsSchedule;
 import com.example.cams.entity.enums.CamsRole;
 import com.example.cams.repository.CamsScheduleRepository;

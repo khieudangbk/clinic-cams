@@ -1,9 +1,9 @@
 package com.example.cams.service;
 
-import com.example.cams.dto.cams.CamsApiModels.AffectedAppointment;
-import com.example.cams.dto.cams.CamsApiModels.CreateLeaveRequest;
-import com.example.cams.dto.cams.CamsApiModels.CreateLeaveResponse;
-import com.example.cams.dto.cams.CamsApiModels.LeaveInfo;
+import com.example.cams.dto.request.leave.CreateLeaveRequest;
+import com.example.cams.dto.response.leave.AffectedAppointment;
+import com.example.cams.dto.response.leave.CreateLeaveResponse;
+import com.example.cams.dto.response.leave.LeaveInfo;
 import com.example.cams.entity.CamsAppointment;
 import com.example.cams.entity.CamsLeave;
 import com.example.cams.entity.CamsSlot;

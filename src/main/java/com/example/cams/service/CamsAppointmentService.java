@@ -1,9 +1,9 @@
 package com.example.cams.service;
 
-import com.example.cams.dto.cams.CamsApiModels.AppointmentInfo;
-import com.example.cams.dto.cams.CamsApiModels.AuditEntry;
-import com.example.cams.dto.cams.CamsApiModels.CreateAppointmentRequest;
-import com.example.cams.dto.cams.CamsApiModels.TransitionRequest;
+import com.example.cams.dto.request.appointment.CreateAppointmentRequest;
+import com.example.cams.dto.request.appointment.TransitionRequest;
+import com.example.cams.dto.response.appointment.AppointmentInfo;
+import com.example.cams.dto.response.appointment.AuditEntry;
 import com.example.cams.entity.CamsAppointment;
 import com.example.cams.entity.CamsAudit;
 import com.example.cams.entity.CamsSlot;
