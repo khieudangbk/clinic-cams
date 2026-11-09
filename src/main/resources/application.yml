@@ -36,7 +36,7 @@ spring:
   config:
     import: optional:file:.env[.properties]
   application:
-    name: adse
+    name: cams
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
