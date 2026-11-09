@@ -1,7 +1,19 @@
 package com.example.cams.controller;
 
 import com.example.cams.config.OpenApiConfig;
-import com.example.cams.dto.doc.CamsApiModels;
+import com.example.cams.dto.cams.CamsApiModels.AppointmentInfo;
+import com.example.cams.dto.cams.CamsApiModels.AppointmentListResponse;
+import com.example.cams.dto.cams.CamsApiModels.AppointmentResponse;
+import com.example.cams.dto.cams.CamsApiModels.AuditEntry;
+import com.example.cams.dto.cams.CamsApiModels.AuditResponse;
+import com.example.cams.dto.cams.CamsApiModels.CreateAppointmentRequest;
+import com.example.cams.dto.cams.CamsApiModels.TransitionRequest;
+import com.example.cams.dto.cams.CamsApiModels;
+import com.example.cams.entity.CamsUser;
+import com.example.cams.security.CamsAuthContext;
+import com.example.cams.security.CamsOriginGuard;
+import com.example.cams.service.CamsAppointmentService;
+import com.example.cams.util.exception.CamsApiException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,19 +21,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import com.example.cams.entity.CamsUser;
-import com.example.cams.security.CamsAuthContext;
-import com.example.cams.security.CamsOriginGuard;
-import com.example.cams.service.CamsAppointmentService;
-import com.example.cams.util.exception.CamsApiException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /** Appointment booking, status transitions, reschedule/cancel and audit trail. */
@@ -49,10 +54,10 @@ public class CamsAppointmentController {
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @ApiResponse(responseCode = "200", description = "Danh sách lịch hẹn", content = @Content(schema = @Schema(implementation = CamsApiModels.AppointmentListResponse.class)))
     @GetMapping
-    public Map<String, Object> list(HttpServletRequest request) {
+    public AppointmentListResponse list(HttpServletRequest request) {
         originGuard.check(request);
         CamsUser user = authContext.authenticate(request).user();
-        return Map.of("appointments", appointmentService.list(user));
+        return new AppointmentListResponse(appointmentService.list(user));
     }
 
     @Operation(summary = "Đặt lịch khám",
@@ -64,13 +69,13 @@ public class CamsAppointmentController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin đặt lịch", required = true,
             content = @Content(schema = @Schema(implementation = CamsApiModels.CreateAppointmentRequest.class)))
     @PostMapping
-    public ResponseEntity<Map<String, Object>> create(HttpServletRequest request,
-            @RequestBody Map<String, Object> body) {
+    public ResponseEntity<AppointmentResponse> create(HttpServletRequest request,
+            @RequestBody CreateAppointmentRequest body) {
         originGuard.check(request);
         CamsAuthContext.Authenticated auth = authContext.authenticate(request);
         authContext.requireCsrf(request, auth.session());
-        Map<String, Object> appointment = appointmentService.create(auth.user(), body);
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("appointment", appointment));
+        AppointmentInfo appointment = appointmentService.create(auth.user(), body);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new AppointmentResponse(appointment));
     }
 
     @Operation(summary = "Lịch sử thao tác của lịch hẹn",
@@ -79,11 +84,11 @@ public class CamsAppointmentController {
     @ApiResponse(responseCode = "200", description = "Nhật ký thao tác", content = @Content(schema = @Schema(implementation = CamsApiModels.AuditResponse.class)))
     @ApiResponse(responseCode = "404", description = "Không tìm thấy lịch hẹn", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
     @GetMapping("/{id}/audit")
-    public Map<String, Object> audit(HttpServletRequest request, @Parameter(description = "Id lịch hẹn", example = "7") @PathVariable Long id) {
+    public AuditResponse audit(HttpServletRequest request, @Parameter(description = "Id lịch hẹn", example = "7") @PathVariable Long id) {
         originGuard.check(request);
         CamsUser user = authContext.authenticate(request).user();
-        List<Map<String, Object>> audit = appointmentService.auditTrail(id, user);
-        return Map.of("audit", audit);
+        List<AuditEntry> audit = appointmentService.auditTrail(id, user);
+        return new AuditResponse(audit);
     }
 
     @Operation(summary = "Chuyển trạng thái lịch hẹn",
@@ -96,15 +101,15 @@ public class CamsAppointmentController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Lý do và/hoặc khung giờ mới tùy action", required = true,
             content = @Content(schema = @Schema(implementation = CamsApiModels.TransitionRequest.class)))
     @PostMapping("/{id}/{action}")
-    public Map<String, Object> transition(HttpServletRequest request, @Parameter(description = "Id lịch hẹn", example = "7") @PathVariable Long id,
-            @Parameter(description = "Thao tác", schema = @Schema(allowableValues = { "approve", "reject", "cancel", "reschedule", "checkin", "complete", "noshow" })) @PathVariable String action, @RequestBody Map<String, Object> body) {
+    public AppointmentResponse transition(HttpServletRequest request, @Parameter(description = "Id lịch hẹn", example = "7") @PathVariable Long id,
+            @Parameter(description = "Thao tác", schema = @Schema(allowableValues = { "approve", "reject", "cancel", "reschedule", "checkin", "complete", "noshow" })) @PathVariable String action, @RequestBody TransitionRequest body) {
         originGuard.check(request);
         if (!ACTIONS.contains(action)) {
             throw new CamsApiException(404, "Không tìm thấy chức năng.", "not_found");
         }
         CamsAuthContext.Authenticated auth = authContext.authenticate(request);
         authContext.requireCsrf(request, auth.session());
-        Map<String, Object> appointment = appointmentService.transition(id, action, auth.user(), body);
-        return Map.of("appointment", appointment);
+        AppointmentInfo appointment = appointmentService.transition(id, action, auth.user(), body);
+        return new AppointmentResponse(appointment);
     }
 }

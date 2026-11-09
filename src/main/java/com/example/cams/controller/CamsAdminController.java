@@ -1,7 +1,18 @@
 package com.example.cams.controller;
 
 import com.example.cams.config.OpenApiConfig;
-import com.example.cams.dto.doc.CamsApiModels;
+import com.example.cams.dto.cams.CamsApiModels.CreateStaffUserRequest;
+import com.example.cams.dto.cams.CamsApiModels.CreatedIdResponse;
+import com.example.cams.dto.cams.CamsApiModels.OkResponse;
+import com.example.cams.dto.cams.CamsApiModels.UpdateSettingsRequest;
+import com.example.cams.dto.cams.CamsApiModels.UpdateStaffUserRequest;
+import com.example.cams.dto.cams.CamsApiModels.UpsertSpecialtyRequest;
+import com.example.cams.dto.cams.CamsApiModels.UserListResponse;
+import com.example.cams.dto.cams.CamsApiModels;
+import com.example.cams.entity.enums.CamsRole;
+import com.example.cams.security.CamsAuthContext;
+import com.example.cams.security.CamsOriginGuard;
+import com.example.cams.service.CamsAdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,17 +20,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import com.example.cams.entity.enums.CamsRole;
-import com.example.cams.security.CamsAuthContext;
-import com.example.cams.security.CamsOriginGuard;
-import com.example.cams.service.CamsAdminService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 import static com.example.cams.util.CamsValidation.require;
 
@@ -54,11 +58,11 @@ public class CamsAdminController {
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @ApiResponse(responseCode = "200", description = "Danh sách nhân sự", content = @Content(schema = @Schema(implementation = CamsApiModels.UserListResponse.class)))
     @GetMapping("/users")
-    public Map<String, Object> listUsers(HttpServletRequest request) {
+    public UserListResponse listUsers(HttpServletRequest request) {
         originGuard.check(request);
         CamsAuthContext.Authenticated auth = authContext.authenticate(request);
         requireManager(request, auth, false);
-        return Map.of("users", adminService.listStaffUsers());
+        return new UserListResponse(adminService.listStaffUsers());
     }
 
     @Operation(summary = "Tạo tài khoản nhân sự",
@@ -70,13 +74,13 @@ public class CamsAdminController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin nhân sự", required = true,
             content = @Content(schema = @Schema(implementation = CamsApiModels.CreateStaffUserRequest.class)))
     @PostMapping("/users")
-    public ResponseEntity<Map<String, Object>> createUser(HttpServletRequest request,
-            @RequestBody Map<String, Object> body) {
+    public ResponseEntity<CreatedIdResponse> createUser(HttpServletRequest request,
+            @RequestBody CreateStaffUserRequest body) {
         originGuard.check(request);
         CamsAuthContext.Authenticated auth = authContext.authenticate(request);
         requireManager(request, auth, true);
         Long id = adminService.createStaffUser(body);
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("id", id));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new CreatedIdResponse(id));
     }
 
     @Operation(summary = "Cập nhật tài khoản nhân sự",
@@ -88,13 +92,13 @@ public class CamsAdminController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Các trường cần đổi", required = true,
             content = @Content(schema = @Schema(implementation = CamsApiModels.UpdateStaffUserRequest.class)))
     @PostMapping("/users/{id}")
-    public Map<String, Object> updateUser(HttpServletRequest request, @Parameter(description = "Id tài khoản", example = "4") @PathVariable Long id,
-            @RequestBody Map<String, Object> body) {
+    public OkResponse updateUser(HttpServletRequest request, @Parameter(description = "Id tài khoản", example = "4") @PathVariable Long id,
+            @RequestBody UpdateStaffUserRequest body) {
         originGuard.check(request);
         CamsAuthContext.Authenticated auth = authContext.authenticate(request);
         requireManager(request, auth, true);
         adminService.updateStaffUser(id, body);
-        return Map.of("ok", true);
+        return new OkResponse(true);
     }
 
     @Operation(summary = "Tạo hoặc đổi tên chuyên khoa",
@@ -105,12 +109,12 @@ public class CamsAdminController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Chuyên khoa", required = true,
             content = @Content(schema = @Schema(implementation = CamsApiModels.UpsertSpecialtyRequest.class)))
     @PostMapping("/specialties")
-    public Map<String, Object> upsertSpecialty(HttpServletRequest request, @RequestBody Map<String, Object> body) {
+    public OkResponse upsertSpecialty(HttpServletRequest request, @RequestBody UpsertSpecialtyRequest body) {
         originGuard.check(request);
         CamsAuthContext.Authenticated auth = authContext.authenticate(request);
         requireManager(request, auth, true);
         adminService.upsertSpecialty(body);
-        return Map.of("ok", true);
+        return new OkResponse(true);
     }
 
     @Operation(summary = "Cập nhật cấu hình",
@@ -121,11 +125,11 @@ public class CamsAdminController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Cấu hình cần đổi", required = true,
             content = @Content(schema = @Schema(implementation = CamsApiModels.UpdateSettingsRequest.class)))
     @PostMapping("/settings")
-    public Map<String, Object> updateSettings(HttpServletRequest request, @RequestBody Map<String, Object> body) {
+    public OkResponse updateSettings(HttpServletRequest request, @RequestBody UpdateSettingsRequest body) {
         originGuard.check(request);
         CamsAuthContext.Authenticated auth = authContext.authenticate(request);
         requireManager(request, auth, true);
         adminService.updateSettings(body);
-        return Map.of("ok", true);
+        return new OkResponse(true);
     }
 }

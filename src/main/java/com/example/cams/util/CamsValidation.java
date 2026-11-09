@@ -1,6 +1,7 @@
 package com.example.cams.util;
 
 import com.example.cams.util.exception.CamsApiException;
+import tools.jackson.databind.JsonNode;
 
 /** Mirrors app.py's require()/text()/integer() helpers so every endpoint validates the same way. */
 public final class CamsValidation {
@@ -36,6 +37,26 @@ public final class CamsValidation {
         require(trimmed.length() >= minimum && trimmed.length() <= maximum,
                 label + ": từ " + minimum + " đến " + maximum + " ký tự.");
         return trimmed;
+    }
+
+    /** Keeps omitted properties distinct from explicit null in defaults and partial updates. */
+    public static Object jsonValueOrDefault(JsonNode node, Object defaultValue) {
+        if (node == null || node.isMissingNode()) {
+            return defaultValue;
+        }
+        if (node.isNull()) {
+            return null;
+        }
+        if (node.isTextual()) {
+            return node.asText();
+        }
+        if (node.isNumber()) {
+            return node.numberValue();
+        }
+        if (node.isBoolean()) {
+            return node.asBoolean();
+        }
+        return node;
     }
 
     /** Accepts a JSON integer, or a numeric string whose canonical form round-trips exactly (rejects "07", 7.0, true). */

@@ -1,16 +1,17 @@
-package com.example.cams.dto.doc;
+package com.example.cams.dto.cams;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.StringToClassMapItem;
 import io.swagger.v3.oas.annotations.media.Schema;
+import tools.jackson.databind.JsonNode;
 
 import java.util.List;
 import java.util.Map;
 
-/**
- * Documentation-only request/response models for the CAMS booking API. The controllers exchange
- * plain JSON maps at runtime (so field validation lives in the services); these records exist
- * so Swagger can describe the exact shape of every payload.
- */
+/** Request and response DTOs shared by the booking endpoints and OpenAPI. */
 public final class CamsApiModels {
 
     private CamsApiModels() {
@@ -34,6 +35,9 @@ public final class CamsApiModels {
     public record CreatedIdResponse(@Schema(description = "Id bản ghi vừa tạo.", example = "12") long id) {
     }
 
+    // Request DTOs retain raw values for service validation. In particular, numeric strings,
+    // floating-point numbers and booleans must not be coerced to integers during binding.
+
     // ---------------------------------------------------------------- users & session
 
     @Schema(description = "Thông tin công khai của một tài khoản.")
@@ -49,12 +53,13 @@ public final class CamsApiModels {
     }
 
     @Schema(description = "Đăng ký tài khoản bệnh nhân.")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record RegisterRequest(
-            @Schema(description = "Họ tên, 1-100 ký tự.", example = "Nguyễn Văn A") String name,
-            @Schema(description = "Email hợp lệ, tối đa 150 ký tự, không được trùng.", example = "a@example.com") String email,
-            @Schema(description = "Mật khẩu 10-128 ký tự.", example = "Testing@12345") String password,
-            @Schema(description = "Số điện thoại 8-20 ký tự gồm số, +, khoảng trắng, ngoặc, gạch ngang (tùy chọn).",
-                    example = "0911222333") String phone) {
+            @Schema(implementation = String.class, description = "Họ tên, 1-100 ký tự.", example = "Nguyễn Văn A") Object name,
+            @Schema(implementation = String.class, description = "Email hợp lệ, tối đa 150 ký tự, không được trùng.", example = "a@example.com") Object email,
+            @Schema(implementation = String.class, description = "Mật khẩu 10-128 ký tự.", example = "Testing@12345") Object password,
+            @Schema(implementation = String.class, description = "Số điện thoại 8-20 ký tự gồm số, +, khoảng trắng, ngoặc, gạch ngang (tùy chọn).",
+                    example = "0911222333") JsonNode phone) {
     }
 
     @Schema(description = "Kết quả đăng ký.")
@@ -64,9 +69,10 @@ public final class CamsApiModels {
     }
 
     @Schema(description = "Thông tin đăng nhập.")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record LoginRequest(
-            @Schema(example = "staff@cams.local") String email,
-            @Schema(example = "Demo@12345") String password) {
+            @Schema(implementation = String.class, example = "staff@cams.local") Object email,
+            @Schema(implementation = String.class, example = "Demo@12345") Object password) {
     }
 
     @Schema(description = "Kết quả đăng nhập. Cookie `cams_session` được đặt qua header Set-Cookie.")
@@ -117,7 +123,7 @@ public final class CamsApiModels {
     @Schema(description = "Mẫu giờ làm việc tuần của một bác sĩ.")
     public record ScheduleInfo(
             @JsonProperty("doctor_id") long doctorId,
-            @Schema(description = "Các ngày làm việc, CSV hoặc danh sách: 0=Thứ Hai ... 5=Thứ Bảy.", example = "0,1,2,3,4") Object weekdays,
+            @Schema(description = "Các ngày làm việc, định dạng CSV: 0=Thứ Hai ... 5=Thứ Bảy.", example = "0,1,2,3,4") String weekdays,
             @JsonProperty("start_time") @Schema(example = "08:00") String startTime,
             @JsonProperty("end_time") @Schema(example = "16:00") String endTime) {
     }
@@ -132,6 +138,7 @@ public final class CamsApiModels {
     @Schema(description = "Khung giờ còn trống.")
     public record SlotInfo(
             @Schema(example = "101") long id,
+            @JsonInclude(JsonInclude.Include.NON_NULL)
             @JsonProperty("doctor_id") @Schema(description = "Chỉ có ở /api/slots.", example = "2") Long doctorId,
             @JsonProperty("starts_at") @Schema(example = "2026-11-24T08:00+07:00") String startsAt,
             @JsonProperty("ends_at") @Schema(example = "2026-11-24T08:30+07:00") String endsAt) {
@@ -161,20 +168,22 @@ public final class CamsApiModels {
 
     @Schema(description = "Yêu cầu đặt lịch. Bệnh nhân đặt cho chính mình; lễ tân phải cung cấp patient_name và "
             + "patient_phone (khách vãng lai) hoặc patient_email (bệnh nhân đã có tài khoản).")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record CreateAppointmentRequest(
-            @JsonProperty("slot_id") @Schema(description = "Id khung giờ còn trống (lấy từ /slots).", example = "101") long slotId,
-            @Schema(description = "Lý do khám, 1-500 ký tự.", example = "Khám tổng quát") String reason,
-            @JsonProperty("patient_name") @Schema(description = "Chỉ lễ tân: họ tên khách, 1-100 ký tự.", example = "Khách Vãng Lai") String patientName,
-            @JsonProperty("patient_phone") @Schema(description = "Chỉ lễ tân: điện thoại khách, 8-20 ký tự.", example = "0911222333") String patientPhone,
-            @JsonProperty("patient_email") @Schema(description = "Chỉ lễ tân: email của bệnh nhân đã có tài khoản.", example = "a@example.com") String patientEmail,
-            @JsonProperty("booking_details") BookingDetails bookingDetails) {
+            @JsonProperty("slot_id") @Schema(implementation = Long.class, description = "Id khung giờ còn trống (lấy từ /slots).", example = "101") Object slotId,
+            @Schema(implementation = String.class, description = "Lý do khám, 1-500 ký tự.", example = "Khám tổng quát") Object reason,
+            @JsonProperty("patient_name") @Schema(implementation = String.class, description = "Chỉ lễ tân: họ tên khách, 1-100 ký tự.", example = "Khách Vãng Lai") Object patientName,
+            @JsonProperty("patient_phone") @Schema(implementation = String.class, description = "Chỉ lễ tân: điện thoại khách, 8-20 ký tự.", example = "0911222333") Object patientPhone,
+            @JsonProperty("patient_email") @Schema(implementation = String.class, description = "Chỉ lễ tân: email của bệnh nhân đã có tài khoản.", example = "a@example.com") JsonNode patientEmail,
+            @JsonProperty("booking_details") @Schema(implementation = BookingDetails.class) Object bookingDetails) {
     }
 
     @Schema(description = "Dữ liệu cho thao tác chuyển trạng thái; trường cần dùng tùy theo action.")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record TransitionRequest(
-            @Schema(description = "cancel/reschedule: bắt buộc với bệnh nhân (tối đa 300 ký tự). reject: bắt buộc. "
-                    + "Các action khác: bỏ qua.", example = "Khách đổi ý") String reason,
-            @JsonProperty("slot_id") @Schema(description = "Chỉ reschedule: khung giờ mới, phải khác khung giờ hiện tại.", example = "205") Long slotId) {
+            @Schema(implementation = String.class, description = "cancel/reschedule: bắt buộc với bệnh nhân (tối đa 300 ký tự). reject: bắt buộc. "
+                    + "Các action khác: bỏ qua.", example = "Khách đổi ý") JsonNode reason,
+            @JsonProperty("slot_id") @Schema(implementation = Long.class, description = "Chỉ reschedule: khung giờ mới, phải khác khung giờ hiện tại.", example = "205") Object slotId) {
     }
 
     @Schema(description = "Một lịch hẹn.")
@@ -226,11 +235,12 @@ public final class CamsApiModels {
     // ---------------------------------------------------------------- leaves
 
     @Schema(description = "Đăng ký nghỉ của bác sĩ.")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record CreateLeaveRequest(
-            @JsonProperty("doctor_id") @Schema(description = "Quản lý bắt buộc chỉ định; bác sĩ tự đăng ký thì bị bỏ qua.", example = "2") Long doctorId,
-            @JsonProperty("starts_at") @Schema(description = "ISO-8601 có offset.", example = "2026-11-25T08:00:00+07:00") String startsAt,
-            @JsonProperty("ends_at") @Schema(description = "ISO-8601 có offset, sau starts_at.", example = "2026-11-25T12:00:00+07:00") String endsAt,
-            @Schema(description = "Lý do nghỉ, 1-300 ký tự.", example = "Nghỉ ốm") String reason) {
+            @JsonProperty("doctor_id") @Schema(implementation = Long.class, description = "Quản lý bắt buộc chỉ định; bác sĩ tự đăng ký thì bị bỏ qua.", example = "2") Object doctorId,
+            @JsonProperty("starts_at") @Schema(implementation = String.class, description = "ISO-8601 có offset.", example = "2026-11-25T08:00:00+07:00") Object startsAt,
+            @JsonProperty("ends_at") @Schema(implementation = String.class, description = "ISO-8601 có offset, sau starts_at.", example = "2026-11-25T12:00:00+07:00") Object endsAt,
+            @Schema(implementation = String.class, description = "Lý do nghỉ, 1-300 ký tự.", example = "Nghỉ ốm") Object reason) {
     }
 
     @Schema(description = "Một lượt nghỉ của bác sĩ.")
@@ -267,12 +277,13 @@ public final class CamsApiModels {
     // ---------------------------------------------------------------- schedules & admin
 
     @Schema(description = "Mẫu giờ làm việc tuần của bác sĩ.")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record SaveScheduleRequest(
-            @JsonProperty("doctor_id") @Schema(description = "Id bác sĩ đang hoạt động.", example = "2") long doctorId,
-            @Schema(description = "Danh sách ngày làm việc không rỗng, mỗi phần tử 0-5 (0=Thứ Hai ... 5=Thứ Bảy).",
-                    example = "[0,1,2,3,4]") List<Integer> weekdays,
-            @JsonProperty("start_time") @Schema(description = "HH:mm, từ 07:00.", example = "08:00") String startTime,
-            @JsonProperty("end_time") @Schema(description = "HH:mm, sau start_time và không quá 17:00.", example = "16:00") String endTime) {
+            @JsonProperty("doctor_id") @Schema(implementation = Long.class, description = "Id bác sĩ đang hoạt động.", example = "2") Object doctorId,
+            @Schema(implementation = Integer[].class, description = "Danh sách ngày làm việc không rỗng, mỗi phần tử 0-5 (0=Thứ Hai ... 5=Thứ Bảy).",
+                    example = "[0,1,2,3,4]") Object weekdays,
+            @JsonProperty("start_time") @Schema(implementation = String.class, description = "HH:mm, từ 07:00.", example = "08:00") Object startTime,
+            @JsonProperty("end_time") @Schema(implementation = String.class, description = "HH:mm, sau start_time và không quá 17:00.", example = "16:00") Object endTime) {
     }
 
     @Schema(description = "Kết quả lưu mẫu tuần.")
@@ -286,31 +297,42 @@ public final class CamsApiModels {
     }
 
     @Schema(description = "Tạo tài khoản nhân sự.")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record CreateStaffUserRequest(
-            @Schema(allowableValues = { "doctor", "receptionist" }) String role,
-            @Schema(description = "Họ tên, 1-100 ký tự.", example = "BS. Lê D") String name,
-            @Schema(description = "Email hợp lệ, không trùng.", example = "d@cams.local") String email,
-            @Schema(description = "Mật khẩu 10-128 ký tự.", example = "Demo@12345") String password,
-            @JsonProperty("specialty_id") @Schema(description = "Bắt buộc khi role = doctor.", example = "1") Long specialtyId) {
+            @Schema(implementation = String.class, allowableValues = { "doctor", "receptionist" }) Object role,
+            @Schema(implementation = String.class, description = "Họ tên, 1-100 ký tự.", example = "BS. Lê D") Object name,
+            @Schema(implementation = String.class, description = "Email hợp lệ, không trùng.", example = "d@cams.local") Object email,
+            @Schema(implementation = String.class, description = "Mật khẩu 10-128 ký tự.", example = "Demo@12345") Object password,
+            @JsonProperty("specialty_id") @Schema(implementation = Long.class, description = "Bắt buộc khi role = doctor.", example = "1") Object specialtyId) {
     }
 
     @Schema(description = "Cập nhật tài khoản nhân sự; chỉ gửi các trường cần đổi.")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record UpdateStaffUserRequest(
-            @Schema(description = "Họ tên mới, 1-100 ký tự.") String name,
-            @Schema(description = "1 = hoạt động, 0 = khóa.", allowableValues = { "0", "1" }) Integer active,
-            @JsonProperty("specialty_id") @Schema(description = "Chuyên khoa mới; null để bỏ chuyên khoa.", nullable = true) Long specialtyId) {
+            @Schema(implementation = String.class, description = "Họ tên mới, 1-100 ký tự.") JsonNode name,
+            @Schema(implementation = Integer.class, description = "1 = hoạt động, 0 = khóa.", allowableValues = { "0", "1" }) JsonNode active,
+            @JsonProperty("specialty_id") @Schema(implementation = Long.class, description = "Chuyên khoa mới; null để bỏ chuyên khoa.", nullable = true) JsonNode specialtyId) {
     }
 
     @Schema(description = "Tạo mới hoặc đổi tên chuyên khoa.")
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record UpsertSpecialtyRequest(
-            @Schema(description = "Bỏ trống để tạo mới; có giá trị để đổi tên chuyên khoa đó.", nullable = true) Long id,
-            @Schema(description = "Tên chuyên khoa, 1-100 ký tự.", example = "Nhi khoa") String name) {
+            @Schema(implementation = Long.class, description = "Bỏ trống để tạo mới; có giá trị để đổi tên chuyên khoa đó.", nullable = true) Object id,
+            @Schema(implementation = String.class, description = "Tên chuyên khoa, 1-100 ký tự.", example = "Nhi khoa") Object name) {
     }
 
-    @Schema(description = "Cập nhật cấu hình; chỉ gửi các khóa cần đổi, ít nhất một khóa.")
-    public record UpdateSettingsRequest(
-            @JsonProperty("slot_minutes") @Schema(description = "Độ dài mỗi khung giờ (phút), 5-120.", example = "30") Integer slotMinutes,
-            @JsonProperty("cutoff_hours") @Schema(description = "Phải đổi/hủy trước giờ hẹn tối thiểu bao nhiêu giờ, 0-72.", example = "2") Integer cutoffHours,
-            @JsonProperty("max_reschedules") @Schema(description = "Số lần đổi lịch tối đa, 0-10.", example = "2") Integer maxReschedules) {
+    @Schema(description = "Cập nhật ít nhất một khóa: slot_minutes (5–120 phút), cutoff_hours (0–72 giờ), "
+            + "max_reschedules (0–10 lần).",
+            properties = {
+                    @StringToClassMapItem(key = "slot_minutes", value = Integer.class),
+                    @StringToClassMapItem(key = "cutoff_hours", value = Integer.class),
+                    @StringToClassMapItem(key = "max_reschedules", value = Integer.class)
+            })
+    public record UpdateSettingsRequest(@Schema(hidden = true) Map<String, Object> values) {
+
+        // Keep every supplied key so validation can reject unsupported settings.
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        public UpdateSettingsRequest {
+        }
     }
 }
