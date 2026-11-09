@@ -63,21 +63,20 @@ Backend đọc `.env` ở thư mục `backend/` (`EnvLoader` và `spring.config.
 | `SERVER_PORT` | Cổng backend, khớp proxy trong `frontend/vite.config.ts` | `8080` |
 | `CORS_ALLOWED_ORIGINS` | Các frontend được phép, ngăn cách bằng dấu phẩy. **Bắt buộc**, thiếu thì backend không khởi động | `http://localhost:3000,http://localhost:5173` |
 | `CAMS_DEMO_NOW` | Đồng hồ giả lập (ISO, có offset +07:00). Để trống để dùng giờ thật | `2026-11-23T08:00:00+07:00` |
-| `JWT_*` | Cấu hình module JWT phụ (`/api/auth/**`); `JWT_SECRET`, `JWT_ACCESS_TOKEN_EXPIRATION`, `JWT_REFRESH_TOKEN_EXPIRATION` vẫn bắt buộc để app khởi động | giữ nguyên giá trị trong `.env` |
 
 Không commit `.env` hay mật khẩu thật lên Git.
 
 ## 4. Kiến trúc
 
-API đặt lịch nằm dưới `/api/**`. Ngoài ra project còn một module đăng nhập JWT độc lập ở `/api/auth/**` (bảng `users` riêng, không dùng cho đặt lịch, frontend không gọi); phần còn lại của tài liệu này chỉ nói về API đặt lịch.
+API đặt lịch nằm dưới `/api/**` và dùng tài khoản CAMS trong bảng `cams_users`.
 
 ### Xác thực CAMS
 
 - `POST /api/login` đặt cookie HttpOnly `cams_session` (SameSite=Strict, hiệu lực 8 giờ) và trả `csrf`.
-- Mọi request ghi (POST) phải gửi header `X-CSRF-Token` bằng giá trị `csrf`.
+- Các POST yêu cầu đăng nhập phải gửi header `X-CSRF-Token` bằng giá trị `csrf`.
 - Host chỉ được là `localhost` hoặc `127.0.0.1`; POST có header `Origin` thì phải cùng nguồn (`CamsOriginGuard`).
 - Đăng nhập sai 5 lần liên tiếp thì khóa email đó 60 giây (`CamsLoginRateLimiter`).
-- Xác thực và CSRF được kiểm tra trong từng controller qua `CamsAuthContext`. Spring Security chỉ cho các route CAMS đi qua (`camsFilterChain` là `permitAll`); `/api/auth/**` vẫn dùng JWT.
+- Xác thực và CSRF được kiểm tra trong từng controller qua `CamsAuthContext`. Spring Security chỉ cho các route CAMS đi qua (`camsFilterChain` là `permitAll`).
 - Thành công trả JSON thô; lỗi trả `{"error": "...", "code": "..."}` (`CamsExceptionHandler`).
 
 ### Vai trò
@@ -104,14 +103,14 @@ Bệnh nhân đặt online thì vào `pending`; lễ tân đặt hộ thì vào 
 
 ```
 src/main/java/com/example/cams/
-├── config/        SecurityConfiguration, JacksonConfig, CorsConfig, JwtConfig, OpenApiConfig, CamsDataSeeder
-├── controller/    Cams*Controller (API đặt lịch), AuthController (JWT)
-├── service/       Cams*Service (nghiệp vụ), AuthService, UserService
+├── config/        SecurityConfiguration, JacksonConfig, CorsConfig, OpenApiConfig, CamsDataSeeder
+├── controller/    Cams*Controller (API đặt lịch)
+├── service/       Cams*Service (nghiệp vụ)
 ├── repository/    Spring Data JPA
-├── entity/        Cams* (bảng cams_*), User (module JWT), enums
-├── security/      CamsAuthContext, CamsOriginGuard, CamsLoginRateLimiter, JWT
-├── dto/           request/response của module JWT; dto/doc/CamsApiModels (mô tả Swagger)
-└── util/          CamsTime, CamsClock, CamsValidation, exception, format_response
+├── entity/        Cams* (bảng cams_*) và enums
+├── security/      CamsAuthContext, CamsOriginGuard, CamsLoginRateLimiter
+├── dto/           request/ và response/, chia theo nghiệp vụ
+└── util/          CamsTime, CamsClock, CamsValidation, exception
 src/main/resources/
 ├── application.yml
 └── db/migration/  V1__init_auth.sql, V2__cams_booking.sql, V3__cams_seed_data.sql
@@ -123,7 +122,7 @@ Schema do **Flyway** quản lý; Hibernate chỉ `validate`. Không dùng `ddl-a
 
 | Migration | Nội dung |
 |---|---|
-| `V1__init_auth.sql` | Bảng `users` của module JWT |
+| `V1__init_auth.sql` | Migration lịch sử tạo bảng `users`, hiện luồng CAMS dùng `cams_users` |
 | `V2__cams_booking.sql` | Bảng `cams_*` và cấu hình mặc định (`slot_minutes`, `cutoff_hours`, `max_reschedules`, `advance_days`, `max_active`) |
 | `V3__cams_seed_data.sql` | 3 chuyên khoa, tài khoản demo, 10 bác sĩ và mẫu giờ làm việc (có thể chạy lại an toàn) |
 
