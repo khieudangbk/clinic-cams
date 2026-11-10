@@ -80,10 +80,40 @@ public final class CamsApiModels {
 
     // ---------------------------------------------------------------- catalog & slots
 
+    @Schema(description = "Chuyên khoa.")
+    public record SpecialtyInfo(@Schema(example = "1") long id, @Schema(example = "Tai Mũi Họng") String name) {
+    }
 
+    @Schema(description = "Bác sĩ đang hoạt động.")
+    public record DoctorInfo(
+            @Schema(example = "2") long id,
+            @Schema(example = "BS. Trần B") String name,
+            @JsonProperty("specialty_id") @Schema(example = "1") Long specialtyId,
+            @JsonProperty("specialty_name") @Schema(example = "Tai Mũi Họng") String specialtyName) {
+    }
 
+    @Schema(description = "Danh mục công khai.")
+    public record PublicCatalogResponse(
+            List<SpecialtyInfo> specialties,
+            List<DoctorInfo> doctors,
+            @Schema(example = "2026-11-23T08:00+07:00") String now,
+            @JsonProperty("clock_mode") @Schema(allowableValues = { "demo", "real" }) String clockMode) {
+    }
 
+    @Schema(description = "Mẫu giờ làm việc tuần của một bác sĩ.")
+    public record ScheduleInfo(
+            @JsonProperty("doctor_id") long doctorId,
+            @Schema(description = "Các ngày làm việc, CSV hoặc danh sách: 0=Thứ Hai ... 5=Thứ Bảy.", example = "0,1,2,3,4") Object weekdays,
+            @JsonProperty("start_time") @Schema(example = "08:00") String startTime,
+            @JsonProperty("end_time") @Schema(example = "16:00") String endTime) {
+    }
 
+    @Schema(description = "Danh mục đầy đủ dành cho người đã đăng nhập, kèm mẫu giờ làm việc.")
+    public record CatalogResponse(
+            List<SpecialtyInfo> specialties,
+            List<DoctorInfo> doctors,
+            List<ScheduleInfo> schedules) {
+    }
 
 
 

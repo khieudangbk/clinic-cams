@@ -14,6 +14,7 @@ import com.example.cams.entity.CamsUser;
 import com.example.cams.security.CamsAuthContext;
 import com.example.cams.security.CamsOriginGuard;
 import com.example.cams.service.CamsAccountService;
+import com.example.cams.service.CamsCatalogService;
 import com.example.cams.util.CamsClock;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,12 +35,15 @@ import static com.example.cams.util.CamsValidation.integer;
 public class CamsPublicController {
 
     private final CamsOriginGuard originGuard;
+    private final CamsCatalogService catalogService;
     private final CamsAccountService accountService;
     private final CamsAuthContext authContext;
     private final CamsClock clock;
 
-    public CamsPublicController(CamsOriginGuard originGuard, CamsAccountService accountService, CamsAuthContext authContext, CamsClock clock) {
+    public CamsPublicController(CamsOriginGuard originGuard, CamsCatalogService catalogService,
+            CamsAccountService accountService, CamsAuthContext authContext, CamsClock clock) {
         this.originGuard = originGuard;
+        this.catalogService = catalogService;
         this.accountService = accountService;
         this.authContext = authContext;
         this.clock = clock;
@@ -56,6 +60,15 @@ public class CamsPublicController {
         json.put("application", "CAMS");
         json.put("clock_mode", clock.isDemo() ? "demo" : "real");
         return json;
+    }
+
+    @Operation(summary = "Danh mục công khai",
+            description = "Danh sách chuyên khoa và bác sĩ đang hoạt động cùng thời gian hệ thống. Dùng cho trang đặt lịch trước khi đăng nhập.")
+    @ApiResponse(responseCode = "200", description = "Danh mục", content = @Content(schema = @Schema(implementation = CamsApiModels.PublicCatalogResponse.class)))
+    @GetMapping("/public/catalog")
+    public Map<String, Object> publicCatalog(HttpServletRequest request) {
+        originGuard.check(request);
+        return catalogService.publicCatalog();
     }
 
     @Operation(summary = "Đăng ký tài khoản bệnh nhân",
