@@ -6,6 +6,7 @@ import { normalize } from '../types';
 import { media, doctorImage, specialtyImage } from '../data';
 import { Breadcrumb, Empty } from '../components/UI';
 import { SpecialtyCard, DoctorCard } from '../components/Cards';
+import Schedule from '../components/Schedule';
 export function Specialties() {
   const { catalog } = useApp();
   return (
@@ -162,6 +163,7 @@ export function SpecialtyDetail() {
                 </p>
               </div>
             </div>
+            <Schedule doctor={d} compact />
           </article>
         ))}
       </div>
