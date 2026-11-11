@@ -1437,6 +1437,86 @@ td small {
   color: #fff04b;
   font-weight: 700;
 }
+.facility-cover {
+  height: 250px;
+  background: #e0f4f8;
+  overflow: hidden;
+}
+.facility-cover > img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  object-position: center 45%;
+}
+.facility-header {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  margin: -65px 0 0;
+  position: relative;
+  background: #ffffffda;
+  box-shadow: var(--common-shadow);
+  padding: 20px 30px;
+}
+.facility-header > img {
+  width: 112px;
+  height: 112px;
+  background: white;
+  object-fit: contain;
+}
+.facility-header h1 {
+  font-size: 26px;
+  line-height: 39px;
+  color: #28313f;
+  margin-bottom: 8px;
+}
+.facility-header p {
+  font-size: 18px;
+  margin: 0;
+  color: #28313f;
+}
+.facility-tabs {
+  display: flex;
+  gap: 40px;
+  padding: 20px 0 15px;
+  border-bottom: 1px solid #eee;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.facility-tabs a {
+  color: #28313f;
+  font-weight: 700;
+  font-size: 15px;
+  text-transform: uppercase;
+}
+.facility-content {
+  max-width: 950px;
+  padding: 25px 0 40px;
+}
+.facility-content h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #337ab7;
+}
+.facility-content p,
+.facility-content li {
+  font-size: 18px;
+  line-height: 27px;
+}
+.facility-content section {
+  padding-block: 15px;
+  scroll-margin-top: 20px;
+}
+.facility-body-image {
+  width: 100%;
+  max-height: 350px;
+  object-fit: contain;
+  background: #f1fafb;
+  margin: 20px 0;
+}
+.facility-content .notice {
+  font-size: 14px;
+}
 /* Responsive values from DESIGN.md §4, §9. */
 @media (min-width: 577px) {
   .header-container {
@@ -1833,6 +1913,29 @@ td small {
   .doctor-intro > img {
     width: 100px;
     height: 100px;
+  }
+  .facility-cover {
+    height: 190px;
+  }
+  .facility-header {
+    padding: 20px;
+    gap: 20px;
+  }
+  .facility-header > img {
+    width: 90px;
+    height: 90px;
+  }
+  .facility-header h1 {
+    font-size: 23px;
+    line-height: 34px;
+  }
+  .facility-header p {
+    font-size: 14px;
+  }
+  .facility-content p,
+  .facility-content li {
+    font-size: 16px;
+    line-height: 24px;
   }
   .footer-grid {
     display: flex;
@@ -2342,6 +2445,40 @@ td small {
   }
   .address-block {
     font-size: 12px;
+  }
+  .facility-cover {
+    height: 145px;
+  }
+  .facility-header {
+    padding: 15px;
+    gap: 15px;
+    margin-top: -40px;
+  }
+  .facility-header > img {
+    width: 75px;
+    height: 75px;
+  }
+  .facility-header h1 {
+    font-size: 19px;
+    line-height: 28.5px;
+  }
+  .facility-header p {
+    font-size: 12px;
+  }
+  .facility-tabs {
+    gap: 25px;
+    padding-block: 15px;
+  }
+  .facility-tabs a {
+    font-size: 12px;
+  }
+  .facility-content h2 {
+    font-size: 16px;
+  }
+  .facility-content p,
+  .facility-content li {
+    font-size: 14px;
+    line-height: 24px;
   }
   .toast {
     right: 12px;
