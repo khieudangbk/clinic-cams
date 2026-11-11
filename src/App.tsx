@@ -12,7 +12,7 @@ import {
   Facilities,
   FacilityDetail,
 } from './pages/Discovery';
-import { Handbook, Article } from './pages/Content';
+import { Handbook, Article, Service, Information } from './pages/Content';
 export default function App() {
   const { ready, error, catalog } = useApp();
   const { pathname } = useLocation();
@@ -59,6 +59,12 @@ export default function App() {
         <Route path="/co-so-y-te/cams" element={<FacilityDetail />} />
         <Route path="/cam-nang" element={<Handbook />} />
         <Route path="/cam-nang/:id" element={<Article />} />
+        <Route path="/dich-vu/:id" element={<Service />} />
+        {['/huong-dan', '/cau-hoi-thuong-gap', '/quyen-rieng-tu', '/hop-tac', '/tai-khoan'].map(
+          (path) => (
+            <Route path={path} element={<Information />} key={path} />
+          ),
+        )}
         <Route
           path="*"
           element={
