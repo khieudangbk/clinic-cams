@@ -12,6 +12,7 @@ import {
   Facilities,
   FacilityDetail,
 } from './pages/Discovery';
+import { Handbook, Article } from './pages/Content';
 export default function App() {
   const { ready, error, catalog } = useApp();
   const { pathname } = useLocation();
@@ -56,6 +57,8 @@ export default function App() {
         <Route path="/bac-si/:id" element={<DoctorDetail />} />
         <Route path="/co-so-y-te" element={<Facilities />} />
         <Route path="/co-so-y-te/cams" element={<FacilityDetail />} />
+        <Route path="/cam-nang" element={<Handbook />} />
+        <Route path="/cam-nang/:id" element={<Article />} />
         <Route
           path="*"
           element={
