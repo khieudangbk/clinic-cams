@@ -4,9 +4,10 @@ import { api, setCsrf } from '../api';
 import { useApp } from '../context';
 import { Breadcrumb, ErrorBox } from '../components/UI';
 export function Auth() {
-  const { user, refresh } = useApp();
+  const { user, refresh, notify } = useApp();
   const nav = useNavigate();
-  const [busy, setBusy] = useState(false),
+  const [register, setRegister] = useState(false),
+    [busy, setBusy] = useState(false),
     [error, setError] = useState('');
   const [params] = useSearchParams();
   const raw = params.get('next') || '/';
@@ -24,10 +25,10 @@ export function Auth() {
     );
   return (
     <div className="container page">
-      <Breadcrumb items={[{ label: 'Đăng nhập' }]} />
+      <Breadcrumb items={[{ label: register ? 'Đăng ký' : 'Đăng nhập' }]} />
       <div className="auth-card">
         <h1>
-          {staff ? 'Đăng nhập nhân viên' : 'Đăng nhập CAMS'}
+          {register ? 'Tạo tài khoản bệnh nhân' : staff ? 'Đăng nhập nhân viên' : 'Đăng nhập CAMS'}
         </h1>
         <p>
           {next.startsWith('/dat-lich')
@@ -41,10 +42,16 @@ export function Auth() {
             setError('');
             const data = Object.fromEntries(new FormData(e.currentTarget));
             try {
+              if (register) {
+                await api('/api/register', 'POST', data);
+                setRegister(false);
+                notify('Đăng ký thành công. Vui lòng đăng nhập.');
+              } else {
                 const r = await api('/api/login', 'POST', data);
                 setCsrf(r.csrf);
                 await refresh();
                 nav(r.user.role === 'patient' ? next : '/nhan-vien', { replace: true });
+              }
             } catch (err) {
               setError((err as Error).message);
             } finally {
@@ -52,6 +59,24 @@ export function Auth() {
             }
           }}
         >
+          {register && (
+            <>
+              <label>
+                Họ và tên
+                <input name="name" autoComplete="name" maxLength={100} required />
+              </label>
+              <label>
+                Số điện thoại
+                <input
+                  name="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  pattern="[+0-9 ()-]{8,20}"
+                  required
+                />
+              </label>
+            </>
+          )}
           <label>
             Email
             <input name="email" type="email" autoComplete="username" maxLength={150} required />
@@ -61,7 +86,7 @@ export function Auth() {
             <input
               name="password"
               type="password"
-              autoComplete={'current-password'}
+              autoComplete={register ? 'new-password' : 'current-password'}
               minLength={10}
               maxLength={128}
               required
@@ -69,9 +94,20 @@ export function Auth() {
           </label>
           {error && <ErrorBox message={error} />}
           <button className="primary full" disabled={busy}>
-            {busy ? 'Đang xử lý…' : 'Đăng nhập'}
+            {busy ? 'Đang xử lý…' : register ? 'Đăng ký' : 'Đăng nhập'}
           </button>
         </form>
+        {!staff && (
+          <button
+            className="text-link"
+            onClick={() => {
+              setRegister(!register);
+              setError('');
+            }}
+          >
+            {register ? 'Đã có tài khoản? Đăng nhập' : 'Chưa có tài khoản? Đăng ký'}
+          </button>
+        )}
         <details className="demo-accounts">
           <summary>Tài khoản trải nghiệm</summary>
           <p>
