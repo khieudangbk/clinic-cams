@@ -1750,6 +1750,42 @@ td small {
   align-items: center;
   gap: 15px;
 }
+.assistant-page {
+  max-width: 850px;
+  text-align: center;
+}
+.assistant-page > img {
+  width: 85px;
+  height: 85px;
+  object-fit: contain;
+  margin: 20px auto;
+}
+.assistant-page .hero-search {
+  border-color: #9ed7df;
+  margin: 25px 0;
+}
+.assistant-suggestions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 25px 0;
+}
+.assistant-results {
+  text-align: left;
+  margin-block: 25px;
+}
+.assistant-results > a {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px;
+  border-bottom: 1px solid #eee;
+}
+.assistant-results > a > span {
+  color: #888;
+  font-size: 12px;
+}
 /* Responsive values from DESIGN.md §4, §9. */
 @media (min-width: 577px) {
   .header-container {
@@ -1816,6 +1852,9 @@ td small {
   .auth-card {
     width: 510px;
   }
+  .assistant-page {
+    width: 768px;
+  }
   .service-page {
     width: 768px;
   }
@@ -1881,6 +1920,10 @@ td small {
     width: 510px;
   }
   .content-narrow {
+    width: 850px;
+  }
+  .assistant-page,
+  .service-page {
     width: 850px;
   }
   .inner-header .header-container {
@@ -1951,6 +1994,10 @@ td small {
     width: 510px;
   }
   .content-narrow {
+    width: 850px;
+  }
+  .assistant-page,
+  .service-page {
     width: 850px;
   }
   .ai-card {
@@ -2306,6 +2353,10 @@ td small {
   }
   .public-info-cards {
     grid-template-columns: 1fr;
+  }
+  .assistant-results > a {
+    flex-direction: column;
+    gap: 5px;
   }
 }
 @media (max-width: 576px) {
@@ -2871,6 +2922,16 @@ td small {
   .faq-list summary,
   .faq-list p {
     font-size: 13px;
+  }
+  .assistant-page h1 {
+    font-size: 24px;
+  }
+  .assistant-suggestions {
+    gap: 8px;
+  }
+  .assistant-suggestions .outline-pill {
+    font-size: 12px;
+    padding: 4px 12px;
   }
   .modal {
     padding: 22px;
