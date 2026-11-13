@@ -53,4 +53,17 @@ public class CamsAppointmentController {
         return Map.of("appointments", appointmentService.list(user));
     }
 
+    @Operation(summary = "Lịch sử thao tác của lịch hẹn",
+            description = "Danh sách thay đổi trạng thái theo thời gian của một lịch hẹn mà người dùng có quyền xem.")
+    @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
+    @ApiResponse(responseCode = "200", description = "Nhật ký thao tác", content = @Content(schema = @Schema(implementation = CamsApiModels.AuditResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Không tìm thấy lịch hẹn", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @GetMapping("/{id}/audit")
+    public Map<String, Object> audit(HttpServletRequest request, @Parameter(description = "Id lịch hẹn", example = "7") @PathVariable Long id) {
+        originGuard.check(request);
+        CamsUser user = authContext.authenticate(request).user();
+        List<Map<String, Object>> audit = appointmentService.auditTrail(id, user);
+        return Map.of("audit", audit);
+    }
+
 }
