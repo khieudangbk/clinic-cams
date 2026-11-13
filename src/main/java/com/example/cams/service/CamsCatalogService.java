@@ -217,6 +217,10 @@ public class CamsCatalogService {
                 && hhmm(slot.getEndsAt()).compareTo(schedule.getEndTime()) <= 0;
         require(withinSchedule, "Bác sĩ không làm việc trong khung giờ này.", 409, "slot_unavailable");
 
+        boolean onLeave = leaveRepository.existsByDoctorIdAndStartsAtLessThanAndEndsAtGreaterThan(
+                slot.getDoctorId(), slot.getEndsAt(), slot.getStartsAt());
+        require(!onLeave, "Bác sĩ đã báo nghỉ trong khung giờ này.", 409, "doctor_on_leave");
+
         List<CamsSlot> overlapping = slotRepository.findByDoctorIdAndStartsAtLessThanAndEndsAtGreaterThan(
                 slot.getDoctorId(), slot.getEndsAt(), slot.getStartsAt());
         List<Long> overlappingIds = overlapping.stream().map(CamsSlot::getId).toList();
