@@ -196,9 +196,43 @@ public class CamsCatalogService {
         }
     }
 
+    /** Checks a slot is still bookable right now; mirrors validate_slot(). Returns the slot. */
+    public CamsSlot validateSlot(Long slotId, Long excludingAppointmentId) {
+        CamsSlot slot = slotRepository.findById(slotId)
+                .orElseThrow(() -> new CamsApiException(404, "Khung giờ hoặc bác sĩ không khả dụng."));
+        CamsUser doctor = userRepository.findById(slot.getDoctorId()).orElse(null);
+        require(doctor != null && doctor.isActive(), "Khung giờ hoặc bác sĩ không khả dụng.", 404);
+
+        OffsetDateTime now = clock.now();
+        require(slot.getStartsAt().isAfter(now), "Khung giờ đã bắt đầu.", 409, "slot_unavailable");
+
+        int advanceDays = setting("advance_days");
+        require(!slot.getStartsAt().toLocalDate().isAfter(now.toLocalDate().plusDays(advanceDays)),
+                "Khung giờ vượt giới hạn đặt trước.");
+
+        CamsSchedule schedule = scheduleRepository.findByDoctorId(slot.getDoctorId()).orElse(null);
+        boolean withinSchedule = schedule != null
+                && weekdaySet(schedule.getWeekdays()).contains(isoWeekday(slot.getStartsAt().getDayOfWeek().getValue()))
+                && hhmm(slot.getStartsAt()).compareTo(schedule.getStartTime()) >= 0
+                && hhmm(slot.getEndsAt()).compareTo(schedule.getEndTime()) <= 0;
+        require(withinSchedule, "Bác sĩ không làm việc trong khung giờ này.", 409, "slot_unavailable");
+
+        List<CamsSlot> overlapping = slotRepository.findByDoctorIdAndStartsAtLessThanAndEndsAtGreaterThan(
+                slot.getDoctorId(), slot.getEndsAt(), slot.getStartsAt());
+        List<Long> overlappingIds = overlapping.stream().map(CamsSlot::getId).toList();
+        boolean taken = !overlappingIds.isEmpty() && appointmentRepository.existsBySlotIdInAndStatusInAndIdNot(
+                overlappingIds, ACTIVE_STATUSES, excludingAppointmentId == null ? -1L : excludingAppointmentId);
+        require(!taken, "Khung giờ vừa được người khác đặt. Vui lòng chọn lại.", 409, "slot_taken");
+
+        return slot;
+    }
+
     private int isoWeekday(int javaDayOfWeek) {
         // java.time Monday=1..Sunday=7; app.py's Python weekday() is Monday=0..Sunday=6.
         return javaDayOfWeek - 1;
     }
 
+    private String hhmm(OffsetDateTime value) {
+        return value.withOffsetSameInstant(CamsTime.OFFSET).toLocalTime().toString().substring(0, 5);
+    }
 }

@@ -126,7 +126,17 @@ public final class CamsApiModels {
             List<ScheduleInfo> schedules) {
     }
 
+    @Schema(description = "Khung giờ còn trống.")
+    public record SlotInfo(
+            @Schema(example = "101") long id,
+            @JsonProperty("doctor_id") @Schema(description = "Chỉ có ở /api/slots.", example = "2") Long doctorId,
+            @JsonProperty("starts_at") @Schema(example = "2026-11-24T08:00+07:00") String startsAt,
+            @JsonProperty("ends_at") @Schema(example = "2026-11-24T08:30+07:00") String endsAt) {
+    }
 
+    @Schema(description = "Danh sách khung giờ còn trống trong ngày.")
+    public record SlotsResponse(List<SlotInfo> slots) {
+    }
 
     // ---------------------------------------------------------------- appointments
 
