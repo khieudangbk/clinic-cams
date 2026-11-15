@@ -1,0 +1,170 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { RefreshCw } from 'lucide-react';
+import { api } from '../api';
+import { useApp } from '../context';
+import { dateText, statuses, type Appointment } from '../types';
+import { Breadcrumb, Empty, ErrorBox, Loading } from '../components/UI';
+export function AppointmentList({ staff = false }: { staff?: boolean }) {
+  const [rows, setRows] = useState<Appointment[]>([]),
+    [loading, setLoading] = useState(true),
+    [error, setError] = useState(''),
+    [filter, setFilter] = useState(''),
+    [query, setQuery] = useState('');
+  const refresh = async () => {
+    setError('');
+    try {
+      const r = await api<{ appointments: Appointment[] }>('/api/appointments');
+      setRows(r.appointments);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    refresh();
+  }, []);
+  const visible = rows.filter(
+    (x) =>
+      (!filter || x.status === filter) &&
+      `${x.id} ${x.patient_name} ${x.patient_phone} ${x.doctor_name}`
+        .toLowerCase()
+        .includes(query.toLowerCase()),
+  );
+  if (loading) return <Loading />;
+  return (
+    <>
+      <div className="stat-grid">
+        <div>
+          <small>Chờ xác nhận</small>
+          <strong>{rows.filter((x) => x.status === 'pending').length}</strong>
+        </div>
+        <div>
+          <small>Sắp khám / đang tiếp nhận</small>
+          <strong>{rows.filter((x) => ['confirmed', 'arrived'].includes(x.status)).length}</strong>
+        </div>
+        <div>
+          <small>Đã hoàn thành</small>
+          <strong>{rows.filter((x) => x.status === 'completed').length}</strong>
+        </div>
+      </div>
+      <div className="appointment-toolbar">
+        <label>
+          <span className="sr-only">Tìm lịch hẹn</span>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={staff ? 'Tìm mã lịch, bệnh nhân, bác sĩ…' : 'Tìm mã lịch hoặc bác sĩ…'}
+          />
+        </label>
+        <label>
+          <span className="sr-only">Lọc trạng thái</span>
+          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <option value="">Tất cả trạng thái</option>
+            {Object.entries(statuses).map(([v, l]) => (
+              <option value={v} key={v}>
+                {l}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button className="outline" onClick={refresh}>
+          <RefreshCw size={16} />
+          Làm mới
+        </button>
+      </div>
+      {error && <ErrorBox message={error} retry={refresh} />}
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Mã / Người khám</th>
+              <th>Bác sĩ / Khung giờ</th>
+              <th>Trạng thái</th>
+              <th>Lý do khám</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visible.map((row) => (
+              <tr key={row.id}>
+                <td>
+                  <strong>
+                    #{row.id} · {row.patient_name}
+                  </strong>
+                  <small>
+                    {row.patient_phone} ·{' '}
+                    {row.channel === 'online' ? 'Trực tuyến' : 'Lễ tân đặt hộ'}
+                  </small>
+                  <small>Đã đổi {row.reschedule_count} lần</small>
+                </td>
+                <td>
+                  {row.doctor_name}
+                  <small>{dateText(row.starts_at)}</small>
+                </td>
+                <td>
+                  <span className={'badge ' + row.status}>{statuses[row.status]}</span>
+                  {!!row.doctor_on_leave &&
+                    ['pending', 'confirmed', 'arrived'].includes(row.status) && (
+                      <p className="notice">Bác sĩ nghỉ, cần liên hệ xử lý</p>
+                    )}
+                </td>
+                <td>
+                  {row.reason}
+                </td>
+                <td>
+                  <div className="row-actions">
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {!visible.length && (
+              <tr>
+                <td colSpan={5}>
+                  <Empty title="Chưa có lịch hẹn phù hợp">
+                    {!staff && <Link to="/bac-si">Tìm bác sĩ và đặt khám</Link>}
+                  </Empty>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+export default function Appointments() {
+  const { user } = useApp();
+  if (!user)
+    return (
+      <div className="container page auth-card">
+        <h1>Lịch hẹn của tôi</h1>
+        <p>Đăng nhập để xem và quản lý lịch khám của bạn.</p>
+        <Link className="primary" to="/dang-nhap?next=/lich-hen">
+          Đăng nhập
+        </Link>
+      </div>
+    );
+  if (user.role !== 'patient')
+    return (
+      <div className="container page">
+        <h1>Lịch hẹn phòng khám</h1>
+        <Link to="/nhan-vien/lich-hen" className="primary">
+          Mở danh sách trong khu vực nhân viên
+        </Link>
+      </div>
+    );
+  return (
+    <div className="container page">
+      <Breadcrumb items={[{ label: 'Lịch hẹn của tôi' }]} />
+      <div className="section-heading">
+        <h1>Lịch hẹn của tôi</h1>
+        <Link to="/bac-si" className="see-more">
+          Đặt lịch mới
+        </Link>
+      </div>
+      <AppointmentList />
+    </div>
+  );
+}

@@ -1677,6 +1677,90 @@ td small {
 .demo-accounts ul {
   font-size: 12px;
 }
+.badge {
+  font-size: 11px;
+  display: inline-block;
+  white-space: nowrap;
+  border-radius: 20px;
+  padding: 5px 9px;
+  background: #f1f6fa;
+  color: #377499;
+}
+.badge.pending {
+  background: #fff3d5;
+  color: #966e22;
+}
+.badge.confirmed {
+  background: #e5f1fc;
+  color: #3a79a8;
+}
+.badge.arrived {
+  background: #e4f4f1;
+  color: #2e8776;
+}
+.badge.completed {
+  background: #e7f4eb;
+  color: #3a8255;
+}
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 25px 0;
+}
+.stat-grid > div {
+  border: 1px solid #f1f1f1;
+  box-shadow: var(--common-shadow);
+  border-radius: 16px;
+  padding: 22px;
+  background: linear-gradient(135deg, transparent 75%, var(--mint) 75%, transparent 80%), #fff;
+  transition: transform 0.15s ease;
+}
+.stat-grid > div:hover {
+  transform: translateY(-2px);
+}
+.stat-grid small {
+  display: block;
+  color: #6c8794;
+  font-size: 14px;
+}
+.stat-grid strong {
+  display: block;
+  font-size: 31px;
+  font-weight: 600;
+  color: var(--deep);
+  margin-top: 10px;
+}
+.appointment-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.appointment-toolbar label {
+  margin: 0;
+  min-width: 160px;
+  flex: 1;
+}
+.appointment-toolbar button {
+  white-space: nowrap;
+  font-size: 12px;
+}
+.row-actions {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  min-width: 145px;
+}
+.row-actions button {
+  border: 1px solid #b7dce3;
+  color: #308a9c;
+  padding: 6px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  font-size: 11px;
+}
 /* 8.28–8.29 / 10.7–10.8 Editorial layouts. */
 .handbook > h1 {
   font-size: 24px;
@@ -2523,6 +2607,18 @@ td small {
     font-size: 12px;
     padding: 10px 12px;
   }
+  .stat-grid {
+    gap: 10px;
+  }
+  .stat-grid > div {
+    padding: 15px;
+  }
+  .stat-grid small {
+    font-size: 13px;
+  }
+  .stat-grid strong {
+    font-size: 26px;
+  }
   .public-info-cards {
     grid-template-columns: 1fr;
   }
@@ -3060,6 +3156,33 @@ td small {
   .auth-card .logo {
     font-size: 27px;
     margin-bottom: 20px;
+  }
+  .stat-grid {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+  .stat-grid > div {
+    padding: 13px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .stat-grid small {
+    font-size: 13px;
+  }
+  .stat-grid strong {
+    font-size: 24px;
+    margin: 0;
+  }
+  .appointment-toolbar label {
+    min-width: 130px;
+  }
+  .appointment-toolbar .outline {
+    padding: 10px;
+    font-size: 11px;
+  }
+  .row-actions {
+    min-width: 135px;
   }
   .toast {
     right: 12px;
