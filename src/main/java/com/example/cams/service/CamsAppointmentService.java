@@ -35,6 +35,7 @@ import static com.example.cams.util.CamsValidation.text;
 @Service
 public class CamsAppointmentService {
 
+    private static final Pattern PHONE = Pattern.compile("[+0-9 ()-]{8,20}");
 
     private final CamsAppointmentRepository appointmentRepository;
     private final CamsSlotRepository slotRepository;
@@ -159,6 +160,25 @@ public class CamsAppointmentService {
             channel = BookingChannel.online;
             long activeCount = appointmentRepository.countByPatientIdAndStatusIn(patientId, ACTIVE_STATUSES);
             require(activeCount < setting("max_active"), "Đã đạt giới hạn lịch hẹn chưa khám.", 409);
+        } else if (actor.getRole() == CamsRole.receptionist) {
+            String guestName = text(data.get("patient_name"), "Họ tên bệnh nhân", 100);
+            String guestPhone = text(data.get("patient_phone"), "Điện thoại bệnh nhân", 20, 8);
+            require(PHONE.matcher(guestPhone).matches(), "Số điện thoại không hợp lệ.");
+            String existingEmail = text(data.getOrDefault("patient_email", ""), "Email bệnh nhân", 150, 0)
+                    .toLowerCase();
+            if (!existingEmail.isEmpty()) {
+                CamsUser existing = userRepository.findByEmailAndRoleAndActiveTrue(existingEmail, CamsRole.patient)
+                        .orElseThrow(() -> new CamsApiException(404, "Không tìm thấy tài khoản bệnh nhân theo email."));
+                patientId = existing.getId();
+            } else {
+                CamsUser guest = new CamsUser();
+                guest.setName(guestName);
+                guest.setRole(CamsRole.patient);
+                guest.setPhone(guestPhone);
+                patientId = userRepository.save(guest).getId();
+            }
+            status = AppointmentStatus.confirmed;
+            channel = BookingChannel.staff;
         } else {
             throw new CamsApiException(403, "Bạn không có quyền thực hiện thao tác này.", "forbidden");
         }
