@@ -3,6 +3,7 @@ import { BarChart3, CalendarDays, Users, Clock, LogOut, PlusCircle, ArrowLeft } 
 import { useApp } from '../context';
 import { roles } from '../types';
 import { Logo } from '../components/Layout';
+import { AppointmentList } from './Appointments';
 export function StaffLayout() {
   const { user, logout, notify } = useApp();
   const location = useLocation();
@@ -78,5 +79,13 @@ export function StaffLayout() {
         <Outlet />
       </main>
     </div>
+  );
+}
+export function StaffAppointments() {
+  return (
+    <>
+      <h1>Quản lý lịch hẹn</h1>
+      <AppointmentList staff />
+    </>
   );
 }

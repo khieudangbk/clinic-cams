@@ -60,10 +60,20 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
       }
       return;
     }
-    if (['cancel', 'reschedule'].includes(name)) {
+    if (['cancel', 'reject', 'reschedule'].includes(name)) {
       setDay(catalog!.now.slice(0, 10));
       setAction({ row, name });
       return;
+    }
+    setBusy(true);
+    try {
+      await api(`/api/appointments/${row.id}/${name}`, 'POST', {});
+      notify('Đã cập nhật lịch hẹn.');
+      await refresh();
+    } catch (e) {
+      notify((e as Error).message, true);
+    } finally {
+      setBusy(false);
     }
   };
   const visible = rows.filter(
@@ -162,6 +172,35 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
                 </td>
                 <td>
                   <div className="row-actions">
+                    {user?.role === 'receptionist' && (
+                      <>
+                        {row.status === 'pending' && (
+                          <>
+                            <button disabled={busy} onClick={() => doAction(row, 'approve')}>
+                              Xác nhận
+                            </button>
+                            <button disabled={busy} onClick={() => doAction(row, 'reject')}>
+                              Từ chối
+                            </button>
+                          </>
+                        )}
+                        {row.status === 'confirmed' && (
+                          <>
+                            <button disabled={busy} onClick={() => doAction(row, 'checkin')}>
+                              Check-in
+                            </button>
+                            <button disabled={busy} onClick={() => doAction(row, 'noshow')}>
+                              Vắng mặt
+                            </button>
+                          </>
+                        )}
+                        {row.status === 'arrived' && (
+                          <button disabled={busy} onClick={() => doAction(row, 'complete')}>
+                            Hoàn thành
+                          </button>
+                        )}
+                      </>
+                    )}
                     {['patient', 'receptionist'].includes(user?.role || '') &&
                       ['pending', 'confirmed'].includes(row.status) && (
                         <>
