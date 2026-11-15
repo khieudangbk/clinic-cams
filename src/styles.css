@@ -1517,6 +1517,57 @@ td small {
 .facility-content .notice {
   font-size: 14px;
 }
+/* 8.20–8.21 / 10.5 Booking and authentication. */
+.booking-form {
+  max-width: 700px;
+  padding-block: 20px 35px;
+}
+.booking-summary {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: #f6f8f9;
+  padding: 15px;
+  margin-bottom: 25px;
+}
+.booking-summary > img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.booking-summary h1 {
+  font-size: 20px;
+  line-height: 30px;
+  color: #337ab7;
+  margin: 2px 0 8px;
+}
+.booking-summary p {
+  font-size: 14px;
+  margin: 3px 0;
+}
+.booking-summary small {
+  font-size: 12px;
+  color: #666;
+}
+.booking-form label {
+  font-weight: 400;
+  font-size: 13px;
+}
+.booking-form input,
+.booking-form textarea {
+  border-color: #4bcadc;
+  border-width: 1px;
+  border-radius: 3px;
+  min-height: 44px;
+  padding: 10px;
+  font-size: 14px;
+}
+.booking-form input::placeholder,
+.booking-form textarea::placeholder {
+  color: #666;
+}
 .auth-card {
   max-width: 510px;
   padding: 30px;
@@ -1881,6 +1932,9 @@ td small {
   .listing-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+  .booking-form {
+    width: 700px;
+  }
   .content-narrow {
     width: 768px;
   }
@@ -1954,6 +2008,9 @@ td small {
   .auth-card {
     width: 510px;
   }
+  .booking-form {
+    width: 700px;
+  }
   .content-narrow {
     width: 850px;
   }
@@ -2024,6 +2081,9 @@ td small {
   }
   .listing-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .booking-form {
+    width: 700px;
   }
   .auth-card {
     width: 510px;
@@ -2141,6 +2201,9 @@ td small {
   }
   .listing-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .booking-form {
+    max-width: 700px;
   }
   .content-narrow {
     max-width: 850px;
@@ -2862,6 +2925,27 @@ td small {
   .facility-content li {
     font-size: 14px;
     line-height: 24px;
+  }
+  .booking-summary {
+    padding: 12px;
+    gap: 12px;
+  }
+  .booking-summary > img {
+    width: 80px;
+    height: 80px;
+  }
+  .booking-summary h1 {
+    font-size: 17px;
+    line-height: 25px;
+  }
+  .booking-summary p {
+    font-size: 12px;
+  }
+  .booking-summary small {
+    font-size: 10px;
+  }
+  .booking-form input {
+    font-size: 13px;
   }
   .auth-card {
     padding: 22px;

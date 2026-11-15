@@ -12,7 +12,7 @@ import {
   Facilities,
   FacilityDetail,
 } from './pages/Discovery';
-import { Auth } from './pages/Booking';
+import { Auth, Booking } from './pages/Booking';
 import { Handbook, Article, Service, Assistant, Information } from './pages/Content';
 export default function App() {
   const { ready, error, catalog } = useApp();
@@ -56,6 +56,7 @@ export default function App() {
         <Route path="/bac-si" element={<DoctorList />} />
         <Route path="/tim-kiem" element={<DoctorList />} />
         <Route path="/bac-si/:id" element={<DoctorDetail />} />
+        <Route path="/dat-lich-kham/:id" element={<Booking />} />
         <Route path="/co-so-y-te" element={<Facilities />} />
         <Route path="/co-so-y-te/cams" element={<FacilityDetail />} />
         <Route path="/dang-nhap" element={<Auth />} />
