@@ -15,6 +15,7 @@ import {
 import { Auth, Booking } from './pages/Booking';
 import Appointments from './pages/Appointments';
 import { Handbook, Article, Service, Assistant, Information } from './pages/Content';
+import { StaffLayout } from './pages/Staff';
 export default function App() {
   const { ready, error, catalog } = useApp();
   const { pathname } = useLocation();
@@ -81,6 +82,9 @@ export default function App() {
             </div>
           }
         />
+      </Route>
+      <Route path="/nhan-vien" element={<StaffLayout />}>
+        <Route index element={<p>Chọn chức năng trên thanh điều hướng.</p>} />
       </Route>
     </Routes>
   );

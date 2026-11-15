@@ -2064,6 +2064,94 @@ td small {
   color: #888;
   font-size: 12px;
 }
+/* Staff workspace: isolated from patient-facing website. */
+.staff-shell {
+  display: grid;
+  grid-template-columns: 225px minmax(0, 1fr);
+  min-height: 100dvh;
+  background: #f4f8fa;
+  color: #264655;
+}
+.staff-sidebar {
+  background: #123c50;
+  color: #d3e6ed;
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+}
+.staff-sidebar .logo {
+  font-size: 29px;
+}
+.staff-sidebar .logo small {
+  display: none;
+}
+.staff-sidebar > p {
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  margin-top: 18px;
+  color: #89b4c4;
+}
+.staff-sidebar nav {
+  display: grid;
+  gap: 7px;
+  margin-top: 25px;
+}
+.staff-sidebar nav a {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 13px 12px;
+  font-size: 13px;
+  color: #bcd5df;
+  border-radius: 9px;
+}
+.staff-sidebar nav a.active {
+  background: #286079;
+  color: white;
+}
+.staff-user {
+  margin-top: auto;
+  padding-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.staff-user > small {
+  font-size: 11px;
+  color: #91b5c3;
+}
+.staff-user > a,
+.staff-user > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #b8d8e2;
+  font-size: 11px;
+  text-align: left;
+}
+.staff-main {
+  padding: 30px 35px;
+  max-width: 1500px;
+  width: 100%;
+}
+.staff-main > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid #dfe8ed;
+  padding-bottom: 18px;
+  margin-bottom: 25px;
+  font-size: 11px;
+  color: #7a949f;
+}
+.staff-main > header p {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+}
+.staff-main .content-narrow {
+  margin: 0;
+}
 /* Responsive values from DESIGN.md §4, §9. */
 @media (min-width: 577px) {
   .header-container {
@@ -2418,6 +2506,15 @@ td small {
     font-size: 26px;
     line-height: 39px;
   }
+  .staff-shell {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+  .staff-sidebar {
+    padding: 25px 14px;
+  }
+  .staff-main {
+    padding: 25px 20px;
+  }
   .footer-grid {
     grid-template-columns: 40% 26% 29%;
     gap: 2.5%;
@@ -2641,6 +2738,17 @@ td small {
     font-size: 12px;
     padding: 10px 12px;
   }
+  .staff-shell {
+    grid-template-columns: 170px minmax(0, 1fr);
+  }
+  .staff-sidebar nav a {
+    font-size: 11px;
+    padding: 11px 8px;
+    gap: 8px;
+  }
+  .staff-main {
+    padding: 20px 15px;
+  }
   .stat-grid {
     gap: 10px;
   }
@@ -2652,6 +2760,13 @@ td small {
   }
   .stat-grid strong {
     font-size: 26px;
+  }
+  .staff-main > header {
+    display: block;
+  }
+  .staff-main > header span {
+    display: block;
+    margin-top: 10px;
   }
   .public-info-cards {
     grid-template-columns: 1fr;
@@ -3309,6 +3424,56 @@ td small {
   .assistant-suggestions .outline-pill {
     font-size: 12px;
     padding: 4px 12px;
+  }
+  .staff-shell {
+    display: block;
+  }
+  .staff-sidebar {
+    padding: 15px;
+    gap: 10px;
+  }
+  .staff-sidebar .logo {
+    font-size: 27px;
+  }
+  .staff-sidebar > p {
+    display: none;
+  }
+  .staff-sidebar nav {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin: 0;
+  }
+  .staff-sidebar nav a {
+    font-size: 11px;
+    padding: 9px;
+    gap: 5px;
+  }
+  .staff-sidebar nav a svg {
+    width: 14px;
+    height: 14px;
+  }
+  .staff-user {
+    padding: 8px 0 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 11px;
+    gap: 15px;
+  }
+  .staff-user > small {
+    font-size: 10px;
+  }
+  .staff-user > a,
+  .staff-user > button {
+    font-size: 10px;
+  }
+  .staff-main {
+    padding: 20px 15px;
+  }
+  .staff-main > header span {
+    display: none;
   }
   .modal {
     padding: 22px;
