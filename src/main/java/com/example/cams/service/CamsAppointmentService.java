@@ -36,6 +36,8 @@ import static com.example.cams.util.CamsValidation.text;
 public class CamsAppointmentService {
 
     private static final Pattern PHONE = Pattern.compile("[+0-9 ()-]{8,20}");
+    private static final Set<String> BOOKING_DETAIL_KEYS = Set.of("booking_for", "name", "phone", "birth_year",
+            "gender", "province", "ward", "address", "extra_note", "payment");
 
     private final CamsAppointmentRepository appointmentRepository;
     private final CamsSlotRepository slotRepository;
@@ -114,8 +116,10 @@ public class CamsAppointmentService {
             json.put("starts_at", slot == null ? null : CamsTime.stamp(slot.getStartsAt()));
             json.put("ends_at", slot == null ? null : CamsTime.stamp(slot.getEndsAt()));
             json.put("doctor_name", doctor == null ? null : doctor.getName());
-            json.put("patient_name", patient == null ? null : patient.getName());
-            json.put("patient_phone", patient == null ? null : patient.getPhone());
+            json.put("patient_name", !a.getPatientNameOverride().isEmpty() ? a.getPatientNameOverride()
+                    : patient == null ? null : patient.getName());
+            json.put("patient_phone", !a.getPatientPhoneOverride().isEmpty() ? a.getPatientPhoneOverride()
+                    : patient == null ? null : patient.getPhone());
             json.put("status", a.getStatus().name());
             json.put("channel", a.getChannel().name());
             json.put("reason", a.getReason());
@@ -123,6 +127,7 @@ public class CamsAppointmentService {
             json.put("created_by", a.getCreatedBy());
             json.put("created_at", CamsTime.stamp(a.getCreatedAt()));
             json.put("doctor_on_leave", onLeave ? 1 : 0);
+            json.put("booking_details", a.getBookingDetails());
             return json;
         }).toList();
     }
@@ -183,6 +188,24 @@ public class CamsAppointmentService {
             throw new CamsApiException(403, "Bạn không có quyền thực hiện thao tác này.", "forbidden");
         }
 
+        Map<String, Object> clean = cleanBookingDetails(data.get("booking_details"));
+        String overrideName = "", overridePhone = "";
+        if (!clean.isEmpty()) {
+            Object bookingFor = clean.get("booking_for");
+            require("self".equals(bookingFor) || "relative".equals(bookingFor), "Chọn người khám hợp lệ.");
+            overrideName = text(clean.get("name"), "Họ tên người khám", 100);
+            overridePhone = text(clean.get("phone"), "Điện thoại người khám", 20, 8);
+            require(PHONE.matcher(overridePhone).matches(), "Số điện thoại không hợp lệ.");
+            Object gender = clean.getOrDefault("gender", "");
+            require(Set.of("", "male", "female", "other").contains(gender), "Giới tính không hợp lệ.");
+            require("at_clinic".equals(clean.getOrDefault("payment", "at_clinic")),
+                    "Chỉ hỗ trợ thanh toán tại cơ sở.");
+            if (clean.get("birth_year") != null && !String.valueOf(clean.get("birth_year")).isEmpty()) {
+                long year = integer(clean.get("birth_year"), "Năm sinh");
+                require(year >= 1900 && year <= clock.now().getYear(), "Năm sinh không hợp lệ.");
+            }
+        }
+
         CamsAppointment appointment = new CamsAppointment();
         appointment.setPatientId(patientId);
         appointment.setSlotId(slot.getId());
@@ -191,6 +214,9 @@ public class CamsAppointmentService {
         appointment.setReason(reason);
         appointment.setCreatedBy(actor.getId());
         appointment.setCreatedAt(clock.now());
+        appointment.setBookingDetails(clean.isEmpty() ? "" : writeJson(clean));
+        appointment.setPatientNameOverride(overrideName);
+        appointment.setPatientPhoneOverride(overridePhone);
         appointmentRepository.save(appointment);
 
         Map<String, Object> after = toJson(appointment);
@@ -227,6 +253,22 @@ public class CamsAppointmentService {
         entry.setReason(reason);
         entry.setCreatedAt(clock.now());
         auditRepository.save(entry);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> cleanBookingDetails(Object raw) {
+        if (raw == null) {
+            return Map.of();
+        }
+        require(raw instanceof Map, "Thông tin người khám không hợp lệ.");
+        Map<String, Object> details = (Map<String, Object>) raw;
+        require(BOOKING_DETAIL_KEYS.containsAll(details.keySet()), "Trường thông tin người khám không được hỗ trợ.");
+        Map<String, Object> clean = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> entry : details.entrySet()) {
+            int max = Set.of("address", "extra_note").contains(entry.getKey()) ? 500 : 100;
+            clean.put(entry.getKey(), text(entry.getValue(), entry.getKey(), max, 0));
+        }
+        return clean;
     }
 
     private String writeJson(Object value) {
