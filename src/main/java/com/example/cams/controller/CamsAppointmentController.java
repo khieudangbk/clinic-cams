@@ -30,6 +30,7 @@ import java.util.Set;
 @RequestMapping("/api/appointments")
 public class CamsAppointmentController {
 
+    private static final Set<String> ACTIONS = Set.of("approve", "reject");
 
     private final CamsOriginGuard originGuard;
     private final CamsAuthContext authContext;
@@ -84,4 +85,25 @@ public class CamsAppointmentController {
         return Map.of("audit", audit);
     }
 
+    @Operation(summary = "Chuyển trạng thái lịch hẹn",
+            description = "Thực hiện một thao tác trên lịch hẹn.\n\n| action | Ai được phép | Điều kiện | Kết quả |\n|---|---|---|---|\n| approve | lễ tân | đang pending | confirmed |\n| reject | lễ tân | đang pending, bắt buộc reason | cancelled |\n| checkin | lễ tân | confirmed, đúng ngày hẹn | arrived |\n| complete | lễ tân | arrived | completed |\n| noshow | lễ tân | confirmed, khung giờ đã kết thúc | noshow |\n| cancel | bệnh nhân, lễ tân | pending/confirmed, trước giờ hẹn tối thiểu cutoff_hours | cancelled |\n| reschedule | bệnh nhân, lễ tân | như cancel, thêm slot_id mới và chưa quá max_reschedules | giữ trạng thái, đổi khung giờ |")
+    @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
+    @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
+    @ApiResponse(responseCode = "200", description = "Lịch hẹn sau khi cập nhật", content = @Content(schema = @Schema(implementation = CamsApiModels.AppointmentResponse.class)))
+    @ApiResponse(responseCode = "404", description = "action không tồn tại hoặc không tìm thấy lịch hẹn (not_found)", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @ApiResponse(responseCode = "409", description = "invalid_transition, cutoff, reschedule_limit, wrong_day, too_early", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Lý do và/hoặc khung giờ mới tùy action", required = true,
+            content = @Content(schema = @Schema(implementation = CamsApiModels.TransitionRequest.class)))
+    @PostMapping("/{id}/{action}")
+    public Map<String, Object> transition(HttpServletRequest request, @Parameter(description = "Id lịch hẹn", example = "7") @PathVariable Long id,
+            @Parameter(description = "Thao tác", schema = @Schema(allowableValues = { "approve", "reject", "cancel", "reschedule", "checkin", "complete", "noshow" })) @PathVariable String action, @RequestBody Map<String, Object> body) {
+        originGuard.check(request);
+        if (!ACTIONS.contains(action)) {
+            throw new CamsApiException(404, "Không tìm thấy chức năng.", "not_found");
+        }
+        CamsAuthContext.Authenticated auth = authContext.authenticate(request);
+        authContext.requireCsrf(request, auth.session());
+        Map<String, Object> appointment = appointmentService.transition(id, action, auth.user(), body);
+        return Map.of("appointment", appointment);
+    }
 }

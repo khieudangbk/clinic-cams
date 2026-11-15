@@ -224,6 +224,32 @@ public class CamsAppointmentService {
         return after;
     }
 
+    @Transactional
+    public Map<String, Object> transition(Long id, String action, CamsUser actor, Map<String, Object> data) {
+        CamsAppointment appointment = getForUser(id, actor);
+        Map<String, Object> before = toJson(appointment);
+        String reason;
+
+        {
+            require(actor.getRole() == CamsRole.receptionist, "Bạn không có quyền thực hiện thao tác này.", 403,
+                    "forbidden");
+            Map<String, AppointmentStatus[]> transitions = Map.of(
+                    "approve", new AppointmentStatus[] { AppointmentStatus.pending, AppointmentStatus.confirmed },
+                    "reject", new AppointmentStatus[] { AppointmentStatus.pending, AppointmentStatus.cancelled });
+            AppointmentStatus[] pair = transitions.get(action);
+            require(pair != null, "Không tìm thấy chức năng.", 404, "not_found");
+            require(appointment.getStatus() == pair[0], "Chuyển trạng thái không hợp lệ.", 409, "invalid_transition");
+            reason = action.equals("reject") ? text(data.get("reason"), "Lý do từ chối", 300)
+                    : "Chuyển trạng thái " + pair[1].name();
+            appointment.setStatus(pair[1]);
+        }
+
+        appointmentRepository.save(appointment);
+        Map<String, Object> after = toJson(appointment);
+        audit(appointment.getId(), actor, action, before, after, reason);
+        return after;
+    }
+
     public List<Map<String, Object>> auditTrail(Long appointmentId, CamsUser actor) {
         getForUser(appointmentId, actor); // ownership check, result unused
         return auditRepository.findByAppointmentIdOrderByIdAsc(appointmentId).stream().map(row -> {
