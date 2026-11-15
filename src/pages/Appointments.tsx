@@ -4,13 +4,16 @@ import { RefreshCw } from 'lucide-react';
 import { api } from '../api';
 import { useApp } from '../context';
 import { dateText, statuses, type Appointment } from '../types';
-import { Breadcrumb, Empty, ErrorBox, Loading } from '../components/UI';
+import { Breadcrumb, Empty, ErrorBox, Loading, Modal } from '../components/UI';
 export function AppointmentList({ staff = false }: { staff?: boolean }) {
+  const { user, notify } = useApp();
   const [rows, setRows] = useState<Appointment[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
     [filter, setFilter] = useState(''),
-    [query, setQuery] = useState('');
+    [query, setQuery] = useState(''),
+    [action, setAction] = useState<{ row: Appointment; name: string } | null>(null),
+    [busy, setBusy] = useState(false);
   const refresh = async () => {
     setError('');
     try {
@@ -25,6 +28,12 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
   useEffect(() => {
     refresh();
   }, []);
+  const doAction = async (row: Appointment, name: string) => {
+    if (['cancel'].includes(name)) {
+      setAction({ row, name });
+      return;
+    }
+  };
   const visible = rows.filter(
     (x) =>
       (!filter || x.status === filter) &&
@@ -115,6 +124,18 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
                 </td>
                 <td>
                   <div className="row-actions">
+                    {['patient', 'receptionist'].includes(user?.role || '') &&
+                      ['pending', 'confirmed'].includes(row.status) && (
+                        <>
+                          <button
+                            className="danger-text"
+                            disabled={busy}
+                            onClick={() => doAction(row, 'cancel')}
+                          >
+                            Hủy
+                          </button>
+                        </>
+                      )}
                   </div>
                 </td>
               </tr>
@@ -131,6 +152,45 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
           </tbody>
         </table>
       </div>
+      {action && (
+        <Modal
+          title={`Hủy lịch #${action.row.id}`}
+          onClose={() => {
+            if (!busy) setAction(null);
+          }}
+        >
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setBusy(true);
+              const data = Object.fromEntries(new FormData(e.currentTarget));
+              try {
+                await api(`/api/appointments/${action.row.id}/${action.name}`, 'POST', {
+                  ...data,
+                });
+                setAction(null);
+                notify('Đã cập nhật lịch hẹn.');
+                await refresh();
+              } catch (err) {
+                notify((err as Error).message, true);
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            <label>
+              Lý do
+              <textarea name="reason" required maxLength={300} />
+            </label>
+            <button
+              className="primary full"
+              disabled={busy}
+            >
+              {busy ? 'Đang xử lý…' : 'Xác nhận'}
+            </button>
+          </form>
+        </Modal>
+      )}
     </>
   );
 }

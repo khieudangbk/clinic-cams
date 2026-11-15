@@ -1761,6 +1761,10 @@ td small {
   white-space: nowrap;
   font-size: 11px;
 }
+.row-actions button.danger-text {
+  color: #a64a55;
+  border-color: #edd6d9;
+}
 /* 8.28–8.29 / 10.7–10.8 Editorial layouts. */
 .handbook > h1 {
   font-size: 24px;
