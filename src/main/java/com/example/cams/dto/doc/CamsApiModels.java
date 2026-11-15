@@ -140,7 +140,32 @@ public final class CamsApiModels {
 
     // ---------------------------------------------------------------- appointments
 
+    @Schema(description = "Thông tin người khám (tùy chọn). Chỉ chấp nhận đúng các trường dưới đây; mỗi trường là chuỗi "
+            + "tối đa 100 ký tự (address và extra_note tối đa 500).")
+    public record BookingDetails(
+            @JsonProperty("booking_for") @Schema(description = "Đặt cho ai. Nếu có, bắt buộc kèm name và phone.",
+                    allowableValues = { "self", "relative" }) String bookingFor,
+            @Schema(description = "Họ tên người khám.", example = "Nguyễn Thị C") String name,
+            @Schema(description = "Điện thoại người khám, 8-20 ký tự.", example = "0988777666") String phone,
+            @JsonProperty("birth_year") @Schema(description = "Năm sinh từ 1900 đến năm hiện tại.", example = "1990") String birthYear,
+            @Schema(allowableValues = { "", "male", "female", "other" }) String gender,
+            @Schema(example = "Hà Nội") String province,
+            @Schema(example = "Phường Cầu Giấy") String ward,
+            @Schema(example = "12 Xuân Thủy") String address,
+            @JsonProperty("extra_note") @Schema(example = "Ho kéo dài 3 ngày") String extraNote,
+            @Schema(description = "Hiện chỉ hỗ trợ thanh toán tại phòng khám.", allowableValues = { "at_clinic" }) String payment) {
+    }
 
+    @Schema(description = "Yêu cầu đặt lịch. Bệnh nhân đặt cho chính mình; lễ tân phải cung cấp patient_name và "
+            + "patient_phone (khách vãng lai) hoặc patient_email (bệnh nhân đã có tài khoản).")
+    public record CreateAppointmentRequest(
+            @JsonProperty("slot_id") @Schema(description = "Id khung giờ còn trống (lấy từ /slots).", example = "101") long slotId,
+            @Schema(description = "Lý do khám, 1-500 ký tự.", example = "Khám tổng quát") String reason,
+            @JsonProperty("patient_name") @Schema(description = "Chỉ lễ tân: họ tên khách, 1-100 ký tự.", example = "Khách Vãng Lai") String patientName,
+            @JsonProperty("patient_phone") @Schema(description = "Chỉ lễ tân: điện thoại khách, 8-20 ký tự.", example = "0911222333") String patientPhone,
+            @JsonProperty("patient_email") @Schema(description = "Chỉ lễ tân: email của bệnh nhân đã có tài khoản.", example = "a@example.com") String patientEmail,
+            @JsonProperty("booking_details") BookingDetails bookingDetails) {
+    }
 
 
     @Schema(description = "Một lịch hẹn.")
@@ -164,6 +189,9 @@ public final class CamsApiModels {
             @JsonProperty("booking_details") @Schema(description = "JSON thông tin người khám đã lưu.") String bookingDetails) {
     }
 
+    @Schema(description = "Một lịch hẹn.")
+    public record AppointmentResponse(AppointmentInfo appointment) {
+    }
 
     @Schema(description = "Danh sách lịch hẹn theo vai trò: bệnh nhân thấy của mình, bác sĩ thấy của mình, lễ tân/quản lý thấy tất cả.")
     public record AppointmentListResponse(List<AppointmentInfo> appointments) {

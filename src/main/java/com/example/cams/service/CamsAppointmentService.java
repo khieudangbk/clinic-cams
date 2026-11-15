@@ -61,6 +61,10 @@ public class CamsAppointmentService {
         this.clock = clock;
     }
 
+    private int setting(String key) {
+        return catalogService.settingsMap().get(key);
+    }
+
     /** Mirrors Application.appointment(): loads a row and checks the caller may see it. */
     public CamsAppointment getForUser(Long id, CamsUser user) {
         CamsAppointment appointment = appointmentRepository.findById(id)
@@ -138,6 +142,40 @@ public class CamsAppointmentService {
                         Comparator.nullsLast(Comparator.reverseOrder()))
                         .thenComparing(m -> (Long) m.get("id"), Comparator.reverseOrder()))
                 .toList();
+    }
+
+    @Transactional
+    public Map<String, Object> create(CamsUser actor, Map<String, Object> data) {
+        long slotId = integer(data.get("slot_id"), "Khung giờ");
+        String reason = text(data.get("reason"), "Lý do khám", 500);
+        CamsSlot slot = catalogService.validateSlot(slotId, null);
+
+        Long patientId;
+        AppointmentStatus status;
+        BookingChannel channel;
+        if (actor.getRole() == CamsRole.patient) {
+            patientId = actor.getId();
+            status = AppointmentStatus.pending;
+            channel = BookingChannel.online;
+            long activeCount = appointmentRepository.countByPatientIdAndStatusIn(patientId, ACTIVE_STATUSES);
+            require(activeCount < setting("max_active"), "Đã đạt giới hạn lịch hẹn chưa khám.", 409);
+        } else {
+            throw new CamsApiException(403, "Bạn không có quyền thực hiện thao tác này.", "forbidden");
+        }
+
+        CamsAppointment appointment = new CamsAppointment();
+        appointment.setPatientId(patientId);
+        appointment.setSlotId(slot.getId());
+        appointment.setChannel(channel);
+        appointment.setStatus(status);
+        appointment.setReason(reason);
+        appointment.setCreatedBy(actor.getId());
+        appointment.setCreatedAt(clock.now());
+        appointmentRepository.save(appointment);
+
+        Map<String, Object> after = toJson(appointment);
+        audit(appointment.getId(), actor, "create", Map.of(), after, "Tạo lịch " + channel.name());
+        return after;
     }
 
     public List<Map<String, Object>> auditTrail(Long appointmentId, CamsUser actor) {
