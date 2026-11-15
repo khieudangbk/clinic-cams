@@ -3,17 +3,20 @@ import { Link } from 'react-router-dom';
 import { RefreshCw } from 'lucide-react';
 import { api } from '../api';
 import { useApp } from '../context';
-import { dateText, statuses, type Appointment } from '../types';
+import { dateText, statuses, type Appointment, type Slot } from '../types';
 import { Breadcrumb, Empty, ErrorBox, Loading, Modal } from '../components/UI';
 export function AppointmentList({ staff = false }: { staff?: boolean }) {
-  const { user, notify } = useApp();
+  const { user, catalog, notify } = useApp();
   const [rows, setRows] = useState<Appointment[]>([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(''),
     [filter, setFilter] = useState(''),
     [query, setQuery] = useState(''),
     [action, setAction] = useState<{ row: Appointment; name: string } | null>(null),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [day, setDay] = useState(catalog!.now.slice(0, 10)),
+    [slots, setSlots] = useState<Slot[]>([]),
+    [slotLoading, setSlotLoading] = useState(false);
   const refresh = async () => {
     setError('');
     try {
@@ -28,8 +31,28 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
   useEffect(() => {
     refresh();
   }, []);
+  useEffect(() => {
+    if (action?.name !== 'reschedule') return;
+    const c = new AbortController();
+    setSlotLoading(true);
+    api<{ slots: Slot[] }>(
+      `/api/slots?doctor_id=${action.row.doctor_id}&day=${day}`,
+      'GET',
+      undefined,
+      c.signal,
+    )
+      .then((r) => setSlots(r.slots))
+      .catch((e) => {
+        if (e.name !== 'AbortError') notify(e.message, true);
+      })
+      .finally(() => {
+        if (!c.signal.aborted) setSlotLoading(false);
+      });
+    return () => c.abort();
+  }, [day, action]);
   const doAction = async (row: Appointment, name: string) => {
-    if (['cancel'].includes(name)) {
+    if (['cancel', 'reschedule'].includes(name)) {
+      setDay(catalog!.now.slice(0, 10));
       setAction({ row, name });
       return;
     }
@@ -127,6 +150,9 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
                     {['patient', 'receptionist'].includes(user?.role || '') &&
                       ['pending', 'confirmed'].includes(row.status) && (
                         <>
+                          <button disabled={busy} onClick={() => doAction(row, 'reschedule')}>
+                            Đổi lịch
+                          </button>
                           <button
                             className="danger-text"
                             disabled={busy}
@@ -154,7 +180,11 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
       </div>
       {action && (
         <Modal
-          title={`Hủy lịch #${action.row.id}`}
+          title={
+            action.name === 'reschedule'
+              ? `Đổi lịch #${action.row.id}`
+              : `${action.name === 'reject' ? 'Từ chối' : 'Hủy'} lịch #${action.row.id}`
+          }
           onClose={() => {
             if (!busy) setAction(null);
           }}
@@ -167,6 +197,7 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
               try {
                 await api(`/api/appointments/${action.row.id}/${action.name}`, 'POST', {
                   ...data,
+                  ...(data.slot_id ? { slot_id: Number(data.slot_id) } : {}),
                 });
                 setAction(null);
                 notify('Đã cập nhật lịch hẹn.');
@@ -178,13 +209,45 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
               }
             }}
           >
+            {action.name === 'reschedule' && (
+              <>
+                <label>
+                  Ngày khám mới
+                  <input
+                    type="date"
+                    min={catalog!.now.slice(0, 10)}
+                    value={day}
+                    onChange={(e) => setDay(e.target.value)}
+                    required
+                  />
+                </label>
+                <label>
+                  Khung giờ mới
+                  {slotLoading ? (
+                    <Loading />
+                  ) : (
+                    <select name="slot_id" required defaultValue="">
+                      <option value="" disabled>
+                        Chọn giờ trống
+                      </option>
+                      {slots.map((s) => (
+                        <option value={s.id} key={s.id}>
+                          {s.starts_at.slice(11, 16)} – {s.ends_at.slice(11, 16)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </label>
+                {!slotLoading && !slots.length && <p>Không có giờ trống trong ngày này.</p>}
+              </>
+            )}
             <label>
               Lý do
               <textarea name="reason" required maxLength={300} />
             </label>
             <button
               className="primary full"
-              disabled={busy}
+              disabled={busy || (action.name === 'reschedule' && (slotLoading || !slots.length))}
             >
               {busy ? 'Đang xử lý…' : 'Xác nhận'}
             </button>
