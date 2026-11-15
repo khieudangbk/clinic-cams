@@ -13,6 +13,7 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
     [filter, setFilter] = useState(''),
     [query, setQuery] = useState(''),
     [action, setAction] = useState<{ row: Appointment; name: string } | null>(null),
+    [audit, setAudit] = useState<any[] | null>(null),
     [busy, setBusy] = useState(false),
     [day, setDay] = useState(catalog!.now.slice(0, 10)),
     [slots, setSlots] = useState<Slot[]>([]),
@@ -51,6 +52,14 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
     return () => c.abort();
   }, [day, action]);
   const doAction = async (row: Appointment, name: string) => {
+    if (name === 'audit') {
+      try {
+        setAudit((await api(`/api/appointments/${row.id}/audit`)).audit);
+      } catch (e) {
+        notify((e as Error).message, true);
+      }
+      return;
+    }
     if (['cancel', 'reschedule'].includes(name)) {
       setDay(catalog!.now.slice(0, 10));
       setAction({ row, name });
@@ -144,6 +153,12 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
                 </td>
                 <td>
                   {row.reason}
+                  {row.booking_details && (
+                    <details>
+                      <summary>Thông tin người khám</summary>
+                      <BookingDetails value={row.booking_details} />
+                    </details>
+                  )}
                 </td>
                 <td>
                   <div className="row-actions">
@@ -162,6 +177,7 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
                           </button>
                         </>
                       )}
+                    <button onClick={() => doAction(row, 'audit')}>Lịch sử</button>
                   </div>
                 </td>
               </tr>
@@ -254,8 +270,81 @@ export function AppointmentList({ staff = false }: { staff?: boolean }) {
           </form>
         </Modal>
       )}
+      {audit && (
+        <Modal title="Lịch sử xử lý lịch hẹn" onClose={() => setAudit(null)}>
+          <div className="audit-list">
+            {audit.map((x) => (
+              <article key={x.id}>
+                <strong>
+                  {(
+                    {
+                      create: 'Đặt lịch',
+                      reschedule: 'Đổi lịch',
+                      approve: 'Xác nhận',
+                      reject: 'Từ chối',
+                      cancel: 'Hủy lịch',
+                      checkin: 'Tiếp nhận',
+                      complete: 'Hoàn thành',
+                      noshow: 'Vắng mặt',
+                    } as Record<string, string>
+                  )[x.action] || x.action}{' '}
+                  · {x.actor_name}
+                </strong>
+                <small>{dateText(x.created_at)}</small>
+                <p>
+                  {x.reason.replace(
+                    /Chuyển trạng thái (confirmed|arrived|completed|noshow)/g,
+                    (_: string, status: string) =>
+                      (
+                        ({
+                          confirmed: 'Lễ tân đã xác nhận lịch hẹn',
+                          arrived: 'Bệnh nhân đã được tiếp nhận',
+                          completed: 'Buổi khám đã hoàn thành',
+                          noshow: 'Ghi nhận bệnh nhân vắng mặt',
+                        }) as Record<string, string>
+                      )[status],
+                  )}
+                </p>
+              </article>
+            ))}
+          </div>
+        </Modal>
+      )}
     </>
   );
+}
+function BookingDetails({ value }: { value: string }) {
+  try {
+    const d = JSON.parse(value);
+    return (
+      <dl className="details-list">
+        {[
+          ['birth_year', 'Năm sinh'],
+          ['gender', 'Giới tính'],
+          ['province', 'Tỉnh/thành phố'],
+          ['ward', 'Phường/xã'],
+          ['address', 'Địa chỉ'],
+          ['extra_note', 'Ghi chú'],
+        ].map(
+          ([key, label]) =>
+            d[key] && (
+              <div key={key}>
+                <dt>{label}</dt>
+                <dd>
+                  {key === 'gender'
+                    ? ({ male: 'Nam', female: 'Nữ', other: 'Khác' } as Record<string, string>)[
+                        d[key]
+                      ] || d[key]
+                    : d[key]}
+                </dd>
+              </div>
+            ),
+        )}
+      </dl>
+    );
+  } catch {
+    return null;
+  }
 }
 export default function Appointments() {
   const { user } = useApp();

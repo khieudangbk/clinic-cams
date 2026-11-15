@@ -1765,6 +1765,36 @@ td small {
   color: #a64a55;
   border-color: #edd6d9;
 }
+.audit-list article {
+  border-left: 3px solid #addde4;
+  padding: 5px 15px;
+  margin: 20px 0;
+}
+.audit-list small {
+  display: block;
+  margin-top: 5px;
+  color: #888;
+  font-size: 12px;
+}
+.audit-list p {
+  margin: 8px 0 0;
+  font-size: 13px;
+}
+.details-list {
+  font-size: 11px;
+  min-width: 160px;
+}
+.details-list > div {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+.details-list dt {
+  color: #888;
+}
+.details-list dd {
+  margin: 0;
+}
 /* 8.28–8.29 / 10.7–10.8 Editorial layouts. */
 .handbook > h1 {
   font-size: 24px;
