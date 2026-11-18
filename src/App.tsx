@@ -15,7 +15,14 @@ import {
 import { Auth, Booking } from './pages/Booking';
 import Appointments from './pages/Appointments';
 import { Handbook, Article, Service, Assistant, Information } from './pages/Content';
-import { StaffLayout, StaffAppointments, StaffBooking, StaffSchedule, Admin } from './pages/Staff';
+import {
+  StaffLayout,
+  Dashboard,
+  StaffAppointments,
+  StaffBooking,
+  StaffSchedule,
+  Admin,
+} from './pages/Staff';
 export default function App() {
   const { ready, error, catalog } = useApp();
   const { pathname } = useLocation();
@@ -84,7 +91,7 @@ export default function App() {
         />
       </Route>
       <Route path="/nhan-vien" element={<StaffLayout />}>
-        <Route index element={<p>Chọn chức năng trên thanh điều hướng.</p>} />
+        <Route index element={<Dashboard />} />
         <Route path="lich-hen" element={<StaffAppointments />} />
         <Route path="dat-lich" element={<StaffBooking />} />
         <Route path="lich-bac-si" element={<StaffSchedule />} />

@@ -1702,6 +1702,11 @@ td small {
   background: #e7f4eb;
   color: #3a8255;
 }
+.badge.cancelled,
+.badge.noshow {
+  background: #f9e7e9;
+  color: #af515b;
+}
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2149,6 +2154,62 @@ td small {
   font-size: 10px;
   letter-spacing: 1.5px;
 }
+.staff-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+.staff-title h1 {
+  margin-bottom: 5px;
+}
+.staff-title p {
+  font-size: 14px;
+  color: #7b939e;
+}
+.staff-date {
+  background: white;
+  border: 1px solid #dce7ed;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 11px;
+}
+.dashboard-welcome {
+  background: linear-gradient(110deg, var(--deep), var(--primary));
+  color: #fff;
+  padding: 25px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+.dashboard-welcome h2 {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+.dashboard-welcome p {
+  font-size: 14px;
+  margin: 0;
+  color: var(--soft);
+}
+.range-switch {
+  display: flex;
+  background: var(--mint);
+  padding: 4px;
+  border-radius: 10px;
+}
+.range-switch button {
+  padding: 8px 13px;
+  border-radius: 7px;
+  color: var(--deep);
+}
+.range-switch button.active {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+.stat-grid.four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
 .dashboard-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
@@ -2559,6 +2620,9 @@ td small {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
+  .stat-grid.four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .specialty-edit-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -2796,6 +2860,13 @@ td small {
   .staff-main {
     padding: 20px 15px;
   }
+  .staff-title {
+    display: block;
+  }
+  .staff-date {
+    display: inline-block;
+    margin-bottom: 15px;
+  }
   .stat-grid {
     gap: 10px;
   }
@@ -2817,6 +2888,9 @@ td small {
   }
   .specialty-edit-grid {
     grid-template-columns: 1fr;
+  }
+  .dashboard-welcome h2 {
+    font-size: 19px;
   }
   .public-info-cards {
     grid-template-columns: 1fr;
@@ -3528,8 +3602,40 @@ td small {
   .dashboard-grid {
     gap: 15px;
   }
+  .stat-grid.four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .stat-grid.four > div {
+    display: block;
+  }
+  .stat-grid.four small {
+    font-size: 10px;
+    min-height: 30px;
+  }
+  .stat-grid.four strong {
+    margin-top: 7px;
+    font-size: 27px;
+  }
   .panel {
     padding: 18px;
+  }
+  .staff-title h1 {
+    font-size: 23px;
+  }
+  .dashboard-welcome {
+    padding: 20px;
+  }
+  .dashboard-welcome h2 {
+    font-size: 18px;
+  }
+  .staff-date {
+    font-size: 10px;
+  }
+  .range-switch {
+    flex: 1;
+  }
+  .range-switch button {
+    flex: 1;
   }
   .inline-form {
     flex-wrap: wrap;
