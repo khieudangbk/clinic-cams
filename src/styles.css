@@ -3475,6 +3475,9 @@ td small {
   .staff-main > header span {
     display: none;
   }
+  .panel {
+    padding: 18px;
+  }
   .modal {
     padding: 22px;
   }
