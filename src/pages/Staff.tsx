@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { BarChart3, CalendarDays, Users, Clock, LogOut, PlusCircle, ArrowLeft } from 'lucide-react';
 import { api } from '../api';
 import { useApp } from '../context';
-import { roles, type Catalog, type Slot } from '../types';
+import { roles, dateText, type Catalog, type Slot } from '../types';
 import { Logo } from '../components/Layout';
 import { Empty, ErrorBox, Loading } from '../components/UI';
 import { AppointmentList } from './Appointments';
@@ -197,11 +197,16 @@ export function StaffSchedule() {
   const { user, catalog, notify, refresh } = useApp();
   const manager = user?.role === 'manager';
   const [data, setData] = useState<Catalog | null>(null),
+    [leaves, setLeaves] = useState<any[]>([]),
     [doctor, setDoctor] = useState(String(manager ? catalog!.doctors[0]?.id : user?.id)),
-    [error, setError] = useState('');
+    [error, setError] = useState(''),
+    [affected, setAffected] = useState<any[] | null>(null);
   const load = () => {
-    api('/api/catalog')
-      .then(setData)
+    Promise.all([api('/api/catalog'), api('/api/leaves')])
+      .then(([c, l]) => {
+        setData(c);
+        setLeaves(l.leaves);
+      })
       .catch((e) => setError(e.message));
   };
   useEffect(load, []);
@@ -289,7 +294,77 @@ export function StaffSchedule() {
             </form>
           )}
         </section>
+        <section className="panel">
+          <h2>Đăng ký ngày nghỉ</h2>
+          <p className="muted">
+            Chặn đặt mới ngay. Lịch đã đặt được liệt kê để lễ tân liên hệ, không tự động hủy.
+          </p>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const d = Object.fromEntries(new FormData(e.currentTarget));
+              try {
+                const r = await api('/api/leaves', 'POST', {
+                  doctor_id: Number(doctor),
+                  starts_at: d.starts_at + ':00+07:00',
+                  ends_at: d.ends_at + ':00+07:00',
+                  reason: d.reason,
+                });
+                setAffected(r.affected);
+                notify(r.message);
+                load();
+              } catch (err) {
+                notify((err as Error).message, true);
+              }
+            }}
+          >
+            <label>
+              Từ lúc
+              <input
+                name="starts_at"
+                type="datetime-local"
+                defaultValue={catalog!.now.slice(0, 10) + 'T09:00'}
+                required
+              />
+            </label>
+            <label>
+              Đến lúc
+              <input
+                name="ends_at"
+                type="datetime-local"
+                defaultValue={catalog!.now.slice(0, 10) + 'T17:00'}
+                required
+              />
+            </label>
+            <label>
+              Lý do
+              <input name="reason" required maxLength={300} />
+            </label>
+            <button className="primary">Ghi nhận ngày nghỉ</button>
+          </form>
+          {affected && (
+            <div className="notice">
+              <strong>{affected.length} lịch bị ảnh hưởng</strong>
+              {affected.map((a) => (
+                <p key={a.id}>
+                  #{a.id} · {a.patient_name} · {a.patient_phone} · {dateText(a.starts_at)}
+                </p>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
+      <section className="panel section-gap">
+        <h2>Ngày nghỉ đã ghi nhận</h2>
+        {leaves
+          .filter((x) => x.doctor_id === Number(doctor))
+          .map((x) => (
+            <p key={x.id}>
+              {dateText(x.starts_at)} → {dateText(x.ends_at)} · {x.reason}
+            </p>
+          ))}
+        {!leaves.some((x) => x.doctor_id === Number(doctor)) && <p>Chưa đăng ký ngày nghỉ.</p>}
+      </section>
     </>
   );
 }
