@@ -230,7 +230,7 @@ public class CamsAppointmentService {
         Map<String, Object> before = toJson(appointment);
         String reason;
 
-        if (action.equals("cancel")) {
+        if (action.equals("cancel") || action.equals("reschedule")) {
             require(actor.getRole() == CamsRole.patient || actor.getRole() == CamsRole.receptionist,
                     "Bạn không có quyền thực hiện thao tác này.", 403, "forbidden");
             require(appointment.getStatus() == AppointmentStatus.pending
@@ -245,8 +245,20 @@ public class CamsAppointmentService {
                 boolean inTime = java.time.Duration.between(clock.now(), currentSlot.getStartsAt())
                         .compareTo(java.time.Duration.ofHours(cutoffHours)) >= 0;
                 require(inTime, "Phải thao tác trước giờ hẹn ít nhất " + cutoffHours + " giờ.", 409, "cutoff");
+                if (action.equals("reschedule")) {
+                    require(appointment.getRescheduleCount() < setting("max_reschedules"),
+                            "Đã hết số lần đổi lịch.", 409, "reschedule_limit");
+                }
             }
-            appointment.setStatus(AppointmentStatus.cancelled);
+            if (action.equals("reschedule")) {
+                long newSlotId = integer(data.get("slot_id"), "Khung giờ mới");
+                require(newSlotId != appointment.getSlotId(), "Cần chọn khung giờ khác.");
+                CamsSlot newSlot = catalogService.validateSlot(newSlotId, appointment.getId());
+                appointment.setSlotId(newSlot.getId());
+                appointment.setRescheduleCount(appointment.getRescheduleCount() + 1);
+            } else {
+                appointment.setStatus(AppointmentStatus.cancelled);
+            }
         } else {
             require(actor.getRole() == CamsRole.receptionist, "Bạn không có quyền thực hiện thao tác này.", 403,
                     "forbidden");
