@@ -2149,8 +2149,16 @@ td small {
   font-size: 10px;
   letter-spacing: 1.5px;
 }
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 20px;
+}
 .staff-main .content-narrow {
   margin: 0;
+}
+.doctor-picker {
+  max-width: 350px;
 }
 /* Responsive values from DESIGN.md §4, §9. */
 @media (min-width: 577px) {
@@ -2514,6 +2522,9 @@ td small {
   }
   .staff-main {
     padding: 25px 20px;
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
   }
   .footer-grid {
     grid-template-columns: 40% 26% 29%;
@@ -3474,6 +3485,9 @@ td small {
   }
   .staff-main > header span {
     display: none;
+  }
+  .dashboard-grid {
+    gap: 15px;
   }
   .panel {
     padding: 18px;

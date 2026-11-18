@@ -3,9 +3,9 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { BarChart3, CalendarDays, Users, Clock, LogOut, PlusCircle, ArrowLeft } from 'lucide-react';
 import { api } from '../api';
 import { useApp } from '../context';
-import { roles, type Slot } from '../types';
+import { roles, type Catalog, type Slot } from '../types';
 import { Logo } from '../components/Layout';
-import { Empty, ErrorBox } from '../components/UI';
+import { Empty, ErrorBox, Loading } from '../components/UI';
 import { AppointmentList } from './Appointments';
 export function StaffLayout() {
   const { user, logout, notify } = useApp();
@@ -189,6 +189,106 @@ export function StaffBooking() {
             {busy ? 'Đang tạo…' : 'Tạo lịch và xác nhận'}
           </button>
         </form>
+      </div>
+    </>
+  );
+}
+export function StaffSchedule() {
+  const { user, catalog, notify, refresh } = useApp();
+  const manager = user?.role === 'manager';
+  const [data, setData] = useState<Catalog | null>(null),
+    [doctor, setDoctor] = useState(String(manager ? catalog!.doctors[0]?.id : user?.id)),
+    [error, setError] = useState('');
+  const load = () => {
+    api('/api/catalog')
+      .then(setData)
+      .catch((e) => setError(e.message));
+  };
+  useEffect(load, []);
+  if (!['manager', 'doctor'].includes(user?.role || ''))
+    return <Empty title="Không có quyền quản lý lịch bác sĩ" />;
+  if (!data) return error ? <ErrorBox message={error} retry={load} /> : <Loading />;
+  const current = data.schedules?.find((x) => x.doctor_id === Number(doctor));
+  return (
+    <>
+      <h1>Lịch làm việc và ngày nghỉ</h1>
+      {error && <ErrorBox message={error} />}
+      <label className="doctor-picker">
+        Bác sĩ
+        <select value={doctor} onChange={(e) => setDoctor(e.target.value)}>
+          {data.doctors
+            .filter((d) => manager || d.id === user?.id)
+            .map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+        </select>
+      </label>
+      <div className="dashboard-grid">
+        <section className="panel">
+          <h2>Mẫu lịch tuần</h2>
+          <p>
+            {current
+              ? `${current.start_time}–${current.end_time} · Thứ ${current.weekdays
+                  .split(',')
+                  .map((x) => Number(x) + 2)
+                  .join(', ')}`
+              : 'Chưa có mẫu lịch'}
+          </p>
+          {manager && (
+            <form
+              key={doctor}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const d = Object.fromEntries(new FormData(e.currentTarget));
+                try {
+                  await api('/api/schedules', 'POST', {
+                    doctor_id: Number(doctor),
+                    weekdays: String(d.weekdays).split(',').map(Number),
+                    start_time: d.start_time,
+                    end_time: d.end_time,
+                  });
+                  notify('Đã lưu mẫu tuần.');
+                  load();
+                  await refresh();
+                } catch (err) {
+                  notify((err as Error).message, true);
+                }
+              }}
+            >
+              <label>
+                Thứ làm việc (0=Hai, 5=Bảy)
+                <input name="weekdays" defaultValue={current?.weekdays || '0,1,2,3,4,5'} required />
+              </label>
+              <div className="form-grid">
+                <label>
+                  Bắt đầu
+                  <input
+                    name="start_time"
+                    type="time"
+                    min="07:00"
+                    max="17:00"
+                    defaultValue={current?.start_time || '07:00'}
+                    required
+                  />
+                </label>
+                <label>
+                  Kết thúc
+                  <input
+                    name="end_time"
+                    type="time"
+                    min="07:00"
+                    max="17:00"
+                    defaultValue={current?.end_time || '17:00'}
+                    required
+                  />
+                </label>
+              </div>
+              <button className="primary">Lưu mẫu tuần</button>
+            </form>
+          )}
+        </section>
       </div>
     </>
   );
