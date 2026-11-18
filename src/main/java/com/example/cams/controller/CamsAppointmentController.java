@@ -30,7 +30,7 @@ import java.util.Set;
 @RequestMapping("/api/appointments")
 public class CamsAppointmentController {
 
-    private static final Set<String> ACTIONS = Set.of("approve", "reject", "cancel", "reschedule");
+    private static final Set<String> ACTIONS = Set.of("approve", "reject", "cancel", "reschedule", "checkin");
 
     private final CamsOriginGuard originGuard;
     private final CamsAuthContext authContext;
