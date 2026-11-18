@@ -2160,6 +2160,15 @@ td small {
 .doctor-picker {
   max-width: 350px;
 }
+.edit-user {
+  border-top: 1px solid #ddd;
+  padding: 25px 0;
+  margin-top: 20px;
+  max-width: 500px;
+}
+.edit-user button {
+  margin-right: 10px;
+}
 /* Responsive values from DESIGN.md §4, §9. */
 @media (min-width: 577px) {
   .header-container {

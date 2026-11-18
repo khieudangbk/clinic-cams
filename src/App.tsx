@@ -15,7 +15,7 @@ import {
 import { Auth, Booking } from './pages/Booking';
 import Appointments from './pages/Appointments';
 import { Handbook, Article, Service, Assistant, Information } from './pages/Content';
-import { StaffLayout, StaffAppointments, StaffBooking, StaffSchedule } from './pages/Staff';
+import { StaffLayout, StaffAppointments, StaffBooking, StaffSchedule, Admin } from './pages/Staff';
 export default function App() {
   const { ready, error, catalog } = useApp();
   const { pathname } = useLocation();
@@ -88,6 +88,7 @@ export default function App() {
         <Route path="lich-hen" element={<StaffAppointments />} />
         <Route path="dat-lich" element={<StaffBooking />} />
         <Route path="lich-bac-si" element={<StaffSchedule />} />
+        <Route path="quan-tri" element={<Admin />} />
       </Route>
     </Routes>
   );

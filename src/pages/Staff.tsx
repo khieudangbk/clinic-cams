@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { BarChart3, CalendarDays, Users, Clock, LogOut, PlusCircle, ArrowLeft } from 'lucide-react';
 import { api } from '../api';
 import { useApp } from '../context';
-import { roles, dateText, type Catalog, type Slot } from '../types';
+import { roles, dateText, type Catalog, type Slot, type User } from '../types';
 import { Logo } from '../components/Layout';
 import { Empty, ErrorBox, Loading } from '../components/UI';
 import { AppointmentList } from './Appointments';
@@ -364,6 +364,167 @@ export function StaffSchedule() {
             </p>
           ))}
         {!leaves.some((x) => x.doctor_id === Number(doctor)) && <p>Chưa đăng ký ngày nghỉ.</p>}
+      </section>
+    </>
+  );
+}
+export function Admin() {
+  const { user, catalog, refresh, notify } = useApp();
+  const [users, setUsers] = useState<User[]>([]),
+    [error, setError] = useState(''),
+    [editing, setEditing] = useState<User | null>(null);
+  const load = () => {
+    api('/api/users')
+      .then((r) => setUsers(r.users))
+      .catch((e) => setError(e.message));
+  };
+  useEffect(load, []);
+  if (user?.role !== 'manager') return <Empty title="Chức năng dành cho quản lý" />;
+  const save = async (path: string, data: unknown) => {
+    try {
+      await api(path, 'POST', data);
+      notify('Đã lưu thay đổi.');
+      load();
+      await refresh();
+      return true;
+    } catch (e) {
+      notify((e as Error).message, true);
+      return false;
+    }
+  };
+  return (
+    <>
+      <h1>Quản trị phòng khám</h1>
+      {error && <ErrorBox message={error} retry={load} />}
+      <div className="dashboard-grid">
+        <section className="panel">
+          <h2>Tạo tài khoản nhân sự</h2>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const f = e.currentTarget;
+              const d = Object.fromEntries(new FormData(f));
+              if (await save('/api/users', { ...d, specialty_id: Number(d.specialty_id) }))
+                f.reset();
+            }}
+          >
+            <label>
+              Họ tên
+              <input name="name" required maxLength={100} />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" required />
+            </label>
+            <label>
+              Mật khẩu ban đầu
+              <input
+                name="password"
+                type="password"
+                minLength={10}
+                required
+                autoComplete="new-password"
+              />
+            </label>
+            <div className="form-grid">
+              <label>
+                Vai trò
+                <select name="role">
+                  <option value="doctor">Bác sĩ</option>
+                  <option value="receptionist">Lễ tân</option>
+                </select>
+              </label>
+              <label>
+                Chuyên khoa
+                <select name="specialty_id">
+                  {catalog!.specialties.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <button className="primary">Tạo tài khoản</button>
+          </form>
+        </section>
+      </div>
+      <section className="panel section-gap">
+        <h2>Tài khoản nhân viên</h2>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>Vai trò</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id}>
+                  <td>{u.name}</td>
+                  <td>{u.email}</td>
+                  <td>{roles[u.role]}</td>
+                  <td>{u.active ? 'Đang hoạt động' : 'Đã khóa'}</td>
+                  <td>
+                    {u.role !== 'manager' && (
+                      <div className="row-actions">
+                        <button onClick={() => setEditing(u)}>Sửa</button>
+                        <button
+                          onClick={() => save('/api/users/' + u.id, { active: u.active ? 0 : 1 })}
+                        >
+                          {u.active ? 'Khóa' : 'Mở khóa'}
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {editing && (
+          <form
+            className="edit-user"
+            key={editing.id}
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const d = Object.fromEntries(new FormData(e.currentTarget));
+              if (
+                await save('/api/users/' + editing.id, {
+                  name: d.name,
+                  ...(editing.role === 'doctor' ? { specialty_id: Number(d.specialty_id) } : {}),
+                })
+              )
+                setEditing(null);
+            }}
+          >
+            <h3>Sửa tài khoản {editing.email}</h3>
+            <label>
+              Họ tên
+              <input name="name" defaultValue={editing.name} required maxLength={100} />
+            </label>
+            {editing.role === 'doctor' && (
+              <label>
+                Chuyên khoa
+                <select name="specialty_id" defaultValue={editing.specialty_id}>
+                  {catalog!.specialties.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <button className="primary">Lưu</button>
+            <button type="button" className="outline" onClick={() => setEditing(null)}>
+              Hủy
+            </button>
+          </form>
+        )}
       </section>
     </>
   );
