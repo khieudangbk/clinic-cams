@@ -2160,6 +2160,30 @@ td small {
 .doctor-picker {
   max-width: 350px;
 }
+.inline-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.inline-form label {
+  margin: 0;
+  flex: 1;
+}
+.specialty-edit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+  margin-top: 25px;
+}
+.specialty-edit-grid form {
+  display: flex;
+  gap: 5px;
+  align-items: flex-end;
+}
+.specialty-edit-grid label {
+  margin: 0;
+  flex: 1;
+}
 .edit-user {
   border-top: 1px solid #ddd;
   padding: 25px 0;
@@ -2535,6 +2559,9 @@ td small {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
+  .specialty-edit-grid {
+    grid-template-columns: 1fr 1fr;
+  }
   .footer-grid {
     grid-template-columns: 40% 26% 29%;
     gap: 2.5%;
@@ -2787,6 +2814,9 @@ td small {
   .staff-main > header span {
     display: block;
     margin-top: 10px;
+  }
+  .specialty-edit-grid {
+    grid-template-columns: 1fr;
   }
   .public-info-cards {
     grid-template-columns: 1fr;
@@ -3500,6 +3530,12 @@ td small {
   }
   .panel {
     padding: 18px;
+  }
+  .inline-form {
+    flex-wrap: wrap;
+  }
+  .inline-form .primary {
+    font-size: 12px;
   }
   .modal {
     padding: 22px;

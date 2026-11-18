@@ -369,7 +369,7 @@ export function StaffSchedule() {
   );
 }
 export function Admin() {
-  const { user, catalog, refresh, notify } = useApp();
+  const { user, catalog, settings, refresh, notify } = useApp();
   const [users, setUsers] = useState<User[]>([]),
     [error, setError] = useState(''),
     [editing, setEditing] = useState<User | null>(null);
@@ -448,7 +448,81 @@ export function Admin() {
             <button className="primary">Tạo tài khoản</button>
           </form>
         </section>
+        <section className="panel">
+          <h2>Quy tắc đặt lịch</h2>
+          <form
+            key={JSON.stringify(settings)}
+            onSubmit={(e) => {
+              e.preventDefault();
+              save(
+                '/api/settings',
+                Object.fromEntries(
+                  [...new FormData(e.currentTarget)].map(([k, v]) => [k, Number(v)]),
+                ),
+              );
+            }}
+          >
+            {[
+              ['slot_minutes', 'Độ dài slot mới (phút)', 5, 120],
+              ['cutoff_hours', 'Đổi/hủy trước ít nhất (giờ)', 0, 72],
+              ['max_reschedules', 'Số lần đổi tối đa', 0, 10],
+            ].map(([key, label, min, max]) => (
+              <label key={key}>
+                {label}
+                <input
+                  type="number"
+                  name={String(key)}
+                  min={Number(min)}
+                  max={Number(max)}
+                  defaultValue={settings[String(key)]}
+                  required
+                />
+              </label>
+            ))}
+            <button className="primary">Lưu quy tắc</button>
+          </form>
+          <p className="notice">
+            Các slot đã sinh giữ độ dài cũ. Cấu hình mới áp dụng khi tạo slot cho ngày mới.
+          </p>
+        </section>
       </div>
+      <section className="panel section-gap">
+        <h2>Danh mục chuyên khoa</h2>
+        <form
+          className="inline-form"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const f = e.currentTarget;
+            if (await save('/api/specialties', Object.fromEntries(new FormData(f)))) f.reset();
+          }}
+        >
+          <label>
+            <span className="sr-only">Chuyên khoa mới</span>
+            <input name="name" required placeholder="Tên chuyên khoa mới" maxLength={100} />
+          </label>
+          <button className="primary">Thêm chuyên khoa</button>
+        </form>
+        <div className="specialty-edit-grid">
+          {catalog!.specialties.map((s) => (
+            <form
+              key={s.id}
+              onSubmit={(e) => {
+                e.preventDefault();
+                save('/api/specialties', {
+                  id: s.id,
+                  name: new FormData(e.currentTarget).get('name'),
+                });
+              }}
+            >
+              <label>
+                <span className="sr-only">Sửa {s.name}</span>
+                <input name="name" defaultValue={s.name} required maxLength={100} />
+              </label>
+              <button className="outline">Lưu</button>
+            </form>
+          ))}
+        </div>
+      </section>
       <section className="panel section-gap">
         <h2>Tài khoản nhân viên</h2>
         <div className="table-wrap">
