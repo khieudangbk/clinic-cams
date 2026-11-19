@@ -13,7 +13,16 @@ import {
 } from 'lucide-react';
 import { api } from '../api';
 import { useApp } from '../context';
-import { roles, dateText, type Appointment, type Catalog, type Slot, type User } from '../types';
+import {
+  roles,
+  statuses,
+  dateText,
+  dayOffset,
+  type Appointment,
+  type Catalog,
+  type Slot,
+  type User,
+} from '../types';
 import { Logo } from '../components/Layout';
 import { Empty, ErrorBox, Loading } from '../components/UI';
 import { AppointmentList } from './Appointments';
@@ -121,8 +130,17 @@ export function Dashboard() {
   const today = catalog!.now.slice(0, 10);
   const { filtered, queue } = summarizeAppointments(rows, today, range, doctor);
   const count = (s: string) => filtered.filter((x) => x.status === s).length;
+  const days = Array.from({ length: range === '30' ? 30 : 7 }, (_, i) =>
+    dayOffset(today, i - (range === '30' ? 29 : 6)),
+  );
+  const max = Math.max(
+    1,
+    ...days.map((day) => filtered.filter((x) => x.starts_at.startsWith(day)).length),
+  );
   const doctorNames = [...new Map(rows.map((x) => [x.doctor_id, x.doctor_name])).entries()];
   const total = filtered.length;
+  let offset = 0;
+  const colors = ['#ffc10e', '#45c3d2', '#34929e', '#4e97d1', '#258367', '#d88187'];
   const csv = () => {
     const cell = csvCell;
     const lines = [
@@ -203,6 +221,128 @@ export function Dashboard() {
             <strong>{v}</strong>
           </div>
         ))}
+      </div>
+      <div className="dashboard-grid">
+        <section className="panel">
+          <h2>Xu hướng lịch hẹn</h2>
+          <p className="muted">
+            {range === 'all'
+              ? '7 ngày gần nhất trên biểu đồ; thẻ và CSV tính toàn bộ kỳ.'
+              : 'Số lịch theo ngày trong kỳ'}
+          </p>
+          <div className="day-chart" role="img" aria-label="Biểu đồ tổng lịch theo ngày">
+            {days.map((day) => {
+              const n = filtered.filter((x) => x.starts_at.startsWith(day)).length;
+              return (
+                <div key={day}>
+                  <span>{n || ''}</span>
+                  <div className="day-bar" style={{ height: (n / max) * 150 }} />
+                  <small>
+                    {day.slice(8)}/{day.slice(5, 7)}
+                  </small>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+        <section className="panel">
+          <h2>Trạng thái lịch hẹn</h2>
+          <div className="status-chart">
+            <div className="donut">
+              <svg viewBox="0 0 160 160" aria-label={`${total} lịch trong kỳ`} role="img">
+                <circle cx="80" cy="80" r="60" fill="none" stroke="#edf3f5" strokeWidth="18" />
+                {Object.keys(statuses).map((key, i) => {
+                  const length = total ? (count(key) / total) * 376.991 : 0;
+                  const at = offset;
+                  offset += length;
+                  return (
+                    <circle
+                      key={key}
+                      cx="80"
+                      cy="80"
+                      r="60"
+                      fill="none"
+                      stroke={colors[i]}
+                      strokeWidth="18"
+                      strokeDasharray={`${length} ${376.991 - length}`}
+                      strokeDashoffset={-at}
+                      transform="rotate(-90 80 80)"
+                    />
+                  );
+                })}
+              </svg>
+              <strong>
+                {total}
+                <small>lịch hẹn</small>
+              </strong>
+            </div>
+            <div className="status-counts">
+              {Object.entries(statuses).map(([s, l], i) => (
+                <div key={s}>
+                  <span>
+                    <i style={{ background: colors[i] }} />
+                    {l}
+                  </span>
+                  <strong>{count(s)}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+        <section className="panel">
+          <h2>Hàng đợi hôm nay</h2>
+          {queue.length ? (
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Giờ</th>
+                    <th>Người khám</th>
+                    <th>Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {queue.slice(0, 8).map((x) => (
+                    <tr key={x.id}>
+                      <td>{x.starts_at.slice(11, 16)}</td>
+                      <td>{x.patient_name}</td>
+                      <td>
+                        <span className={'badge ' + x.status}>{statuses[x.status]}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="empty-state">Không có lịch chờ hôm nay.</p>
+          )}
+          <Link className="see-more-link" to="/nhan-vien/lich-hen">
+            Xem toàn bộ lịch hẹn →
+          </Link>
+        </section>
+        <section className="panel">
+          <h2>Lịch hẹn theo bác sĩ</h2>
+          {doctorNames.map(([id, name]) => {
+            const n = filtered.filter((x) => x.doctor_id === id).length;
+            return (
+              <div className="doctor-ranking" key={id}>
+                <span>
+                  {name}
+                  <strong>{n}</strong>
+                </span>
+                <div>
+                  <i style={{ width: total ? (n / total) * 100 + '%' : '0%' }} />
+                </div>
+              </div>
+            );
+          })}
+          {!doctorNames.length && <p>Chưa có dữ liệu.</p>}
+          <p className="muted">
+            Trực tuyến: {filtered.filter((x) => x.channel === 'online').length} · Lễ tân:{' '}
+            {filtered.filter((x) => x.channel === 'staff').length}
+          </p>
+        </section>
       </div>
     </>
   );
