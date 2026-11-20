@@ -97,4 +97,20 @@ public class CamsAdminController {
         return Map.of("ok", true);
     }
 
+    @Operation(summary = "Tạo hoặc đổi tên chuyên khoa",
+            description = "Không gửi id thì tạo mới, gửi id thì đổi tên chuyên khoa đó. Chỉ quản lý.")
+    @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
+    @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
+    @ApiResponse(responseCode = "200", description = "Đã lưu", content = @Content(schema = @Schema(implementation = CamsApiModels.OkResponse.class)))
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Chuyên khoa", required = true,
+            content = @Content(schema = @Schema(implementation = CamsApiModels.UpsertSpecialtyRequest.class)))
+    @PostMapping("/specialties")
+    public Map<String, Object> upsertSpecialty(HttpServletRequest request, @RequestBody Map<String, Object> body) {
+        originGuard.check(request);
+        CamsAuthContext.Authenticated auth = authContext.authenticate(request);
+        requireManager(request, auth, true);
+        adminService.upsertSpecialty(body);
+        return Map.of("ok", true);
+    }
+
 }

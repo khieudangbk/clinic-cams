@@ -125,4 +125,20 @@ public class CamsAdminService {
         }
     }
 
+    @Transactional
+    public void upsertSpecialty(Map<String, Object> data) {
+        String name = text(data.get("name"), "Chuyên khoa", 100);
+        if (data.get("id") != null) {
+            long id = integer(data.get("id"), "Chuyên khoa");
+            CamsSpecialty specialty = specialtyRepository.findById(id)
+                    .orElseThrow(() -> new CamsApiException(404, "Chuyên khoa không tồn tại."));
+            specialty.setName(name);
+            specialtyRepository.save(specialty);
+        } else {
+            CamsSpecialty specialty = new CamsSpecialty();
+            specialty.setName(name);
+            specialtyRepository.save(specialty);
+        }
+    }
+
 }

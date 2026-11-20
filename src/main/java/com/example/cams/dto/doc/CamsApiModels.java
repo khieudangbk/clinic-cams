@@ -301,5 +301,10 @@ public final class CamsApiModels {
             @JsonProperty("specialty_id") @Schema(description = "Chuyên khoa mới; null để bỏ chuyên khoa.", nullable = true) Long specialtyId) {
     }
 
+    @Schema(description = "Tạo mới hoặc đổi tên chuyên khoa.")
+    public record UpsertSpecialtyRequest(
+            @Schema(description = "Bỏ trống để tạo mới; có giá trị để đổi tên chuyên khoa đó.", nullable = true) Long id,
+            @Schema(description = "Tên chuyên khoa, 1-100 ký tự.", example = "Nhi khoa") String name) {
+    }
 
 }
