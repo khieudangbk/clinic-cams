@@ -294,6 +294,12 @@ public final class CamsApiModels {
             @JsonProperty("specialty_id") @Schema(description = "Bắt buộc khi role = doctor.", example = "1") Long specialtyId) {
     }
 
+    @Schema(description = "Cập nhật tài khoản nhân sự; chỉ gửi các trường cần đổi.")
+    public record UpdateStaffUserRequest(
+            @Schema(description = "Họ tên mới, 1-100 ký tự.") String name,
+            @Schema(description = "1 = hoạt động, 0 = khóa.", allowableValues = { "0", "1" }) Integer active,
+            @JsonProperty("specialty_id") @Schema(description = "Chuyên khoa mới; null để bỏ chuyên khoa.", nullable = true) Long specialtyId) {
+    }
 
 
 }
