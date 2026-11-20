@@ -28,6 +28,11 @@ import static com.example.cams.util.CamsValidation.text;
 @Service
 public class CamsAdminService {
 
+    private static final Map<String, int[]> SETTING_BOUNDS = Map.of(
+            "slot_minutes", new int[] { 5, 120 },
+            "cutoff_hours", new int[] { 0, 72 },
+            "max_reschedules", new int[] { 0, 10 });
+
     private final CamsUserRepository userRepository;
     private final CamsSpecialtyRepository specialtyRepository;
     private final CamsScheduleRepository scheduleRepository;
@@ -141,4 +146,15 @@ public class CamsAdminService {
         }
     }
 
+    @Transactional
+    public void updateSettings(Map<String, Object> data) {
+        require(!data.isEmpty() && SETTING_BOUNDS.keySet().containsAll(data.keySet()), "Tham số không được hỗ trợ.");
+        for (Map.Entry<String, Object> entry : data.entrySet()) {
+            long value = integer(entry.getValue(), entry.getKey());
+            int[] bounds = SETTING_BOUNDS.get(entry.getKey());
+            require(value >= bounds[0] && value <= bounds[1],
+                    entry.getKey() + " ngoài phạm vi " + bounds[0] + "–" + bounds[1] + ".");
+            settingRepository.save(new CamsSetting(entry.getKey(), (int) value));
+        }
+    }
 }
