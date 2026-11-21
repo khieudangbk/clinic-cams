@@ -13,7 +13,7 @@ import java.util.Map;
                 @StringToClassMapItem(key = "cutoff_hours", value = Integer.class),
                 @StringToClassMapItem(key = "max_reschedules", value = Integer.class)
         })
-public record UpdateSettingsRequest(@Schema(hidden = true) Map<String, Object> values) {
+public record UpdateSettingsRequest(@Schema(hidden = true) Map<String, Long> values) {
 
     // Keep every supplied key so validation can reject unsupported settings.
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)

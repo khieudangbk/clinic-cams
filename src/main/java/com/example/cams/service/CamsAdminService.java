@@ -24,8 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.cams.util.CamsValidation.integer;
-import static com.example.cams.util.CamsValidation.jsonValueOrDefault;
+import static com.example.cams.util.CamsValidation.requiredInteger;
 import static com.example.cams.util.CamsValidation.require;
 import static com.example.cams.util.CamsValidation.text;
 
@@ -75,13 +74,13 @@ public class CamsAdminService {
 
     @Transactional
     public Long createStaffUser(CreateStaffUserRequest data) {
-        Object role = data.role();
+        String role = data.role();
         require("doctor".equals(role) || "receptionist".equals(role), "Chỉ tạo bác sĩ hoặc nhân viên.");
         String name = text(data.name(), "Họ tên", 100);
         String email = text(data.email(), "Email", 150).toLowerCase();
         require(email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+"), "Email không hợp lệ.");
         String hashed = passwordEncoder.encode(text(data.password(), "Mật khẩu", 128, 10));
-        Long specialtyId = "doctor".equals(role) ? integer(data.specialtyId(), "Chuyên khoa") : null;
+        Long specialtyId = "doctor".equals(role) ? requiredInteger(data.specialtyId(), "Chuyên khoa") : null;
         if (specialtyId != null) {
             require(specialtyRepository.findById(specialtyId).isPresent(), "Chuyên khoa không tồn tại.");
         }
@@ -111,15 +110,9 @@ public class CamsAdminService {
                 .filter(u -> u.getRole() == CamsRole.doctor || u.getRole() == CamsRole.receptionist)
                 .orElseThrow(() -> new CamsApiException(404, "Tài khoản không thuộc phạm vi quản trị."));
 
-        String name = data.name() == null || data.name().isMissingNode()
-                ? user.getName() : text(jsonValueOrDefault(data.name(), null), "Họ tên", 100);
-        Object activeRaw = jsonValueOrDefault(data.active(), user.isActive() ? 1 : 0);
-        require(Integer.valueOf(1).equals(activeRaw) || Integer.valueOf(0).equals(activeRaw)
-                || Boolean.TRUE.equals(activeRaw) || Boolean.FALSE.equals(activeRaw), "Trạng thái tài khoản không hợp lệ.");
-        boolean active = Integer.valueOf(1).equals(activeRaw) || Boolean.TRUE.equals(activeRaw);
-
-        Object specialty = jsonValueOrDefault(data.specialtyId(), user.getSpecialtyId());
-        Long specialtyId = specialty == null ? null : integer(specialty, "Chuyên khoa");
+        String name = data.getName() == null ? user.getName() : text(data.getName(), "Họ tên", 100);
+        boolean active = data.getActive() == null ? user.isActive() : data.getActive();
+        Long specialtyId = data.isSpecialtyIdProvided() ? data.getSpecialtyId() : user.getSpecialtyId();
         if (user.getRole() == CamsRole.doctor) {
             require(specialtyId != null && specialtyRepository.findById(specialtyId).isPresent(),
                     "Chuyên khoa không tồn tại.");
@@ -138,7 +131,7 @@ public class CamsAdminService {
     public void upsertSpecialty(UpsertSpecialtyRequest data) {
         String name = text(data.name(), "Chuyên khoa", 100);
         if (data.id() != null) {
-            long id = integer(data.id(), "Chuyên khoa");
+            long id = requiredInteger(data.id(), "Chuyên khoa");
             CamsSpecialty specialty = specialtyRepository.findById(id)
                     .orElseThrow(() -> new CamsApiException(404, "Chuyên khoa không tồn tại."));
             specialty.setName(name);
@@ -152,10 +145,10 @@ public class CamsAdminService {
 
     @Transactional
     public void updateSettings(UpdateSettingsRequest data) {
-        Map<String, Object> values = data.values();
+        Map<String, Long> values = data.values();
         require(!values.isEmpty() && SETTING_BOUNDS.keySet().containsAll(values.keySet()), "Tham số không được hỗ trợ.");
-        for (Map.Entry<String, Object> entry : values.entrySet()) {
-            long value = integer(entry.getValue(), entry.getKey());
+        for (Map.Entry<String, Long> entry : values.entrySet()) {
+            long value = requiredInteger(entry.getValue(), entry.getKey());
             int[] bounds = SETTING_BOUNDS.get(entry.getKey());
             require(value >= bounds[0] && value <= bounds[1],
                     entry.getKey() + " ngoài phạm vi " + bounds[0] + "–" + bounds[1] + ".");
