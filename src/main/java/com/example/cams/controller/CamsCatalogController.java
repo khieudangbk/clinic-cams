@@ -1,7 +1,16 @@
 package com.example.cams.controller;
 
 import com.example.cams.config.OpenApiConfig;
-import com.example.cams.dto.doc.CamsApiModels;
+import com.example.cams.dto.cams.CamsApiModels.CatalogResponse;
+import com.example.cams.dto.cams.CamsApiModels.SlotInfo;
+import com.example.cams.dto.cams.CamsApiModels.SlotsResponse;
+import com.example.cams.dto.cams.CamsApiModels;
+import com.example.cams.entity.CamsUser;
+import com.example.cams.entity.enums.CamsRole;
+import com.example.cams.security.CamsAuthContext;
+import com.example.cams.security.CamsOriginGuard;
+import com.example.cams.service.CamsCatalogService;
+import com.example.cams.util.CamsTime;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,13 +18,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import com.example.cams.entity.CamsUser;
-import com.example.cams.entity.enums.CamsRole;
-import com.example.cams.security.CamsAuthContext;
-import com.example.cams.security.CamsOriginGuard;
-import com.example.cams.service.CamsCatalogService;
-import com.example.cams.util.CamsTime;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,9 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static com.example.cams.util.CamsValidation.integer;
@@ -53,7 +53,7 @@ public class CamsCatalogController {
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @ApiResponse(responseCode = "200", description = "Danh mục", content = @Content(schema = @Schema(implementation = CamsApiModels.CatalogResponse.class)))
     @GetMapping("/catalog")
-    public Map<String, Object> catalog(HttpServletRequest request) {
+    public CatalogResponse catalog(HttpServletRequest request) {
         originGuard.check(request);
         authContext.authenticate(request);
         return catalogService.fullCatalog();
@@ -64,7 +64,7 @@ public class CamsCatalogController {
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @ApiResponse(responseCode = "200", description = "Danh sách khung giờ", content = @Content(schema = @Schema(implementation = CamsApiModels.SlotsResponse.class)))
     @GetMapping("/slots")
-    public Map<String, Object> slots(HttpServletRequest request, @Parameter(description = "Id bác sĩ", example = "2") @RequestParam("doctor_id") String doctorIdParam,
+    public SlotsResponse slots(HttpServletRequest request, @Parameter(description = "Id bác sĩ", example = "2") @RequestParam("doctor_id") String doctorIdParam,
             @Parameter(description = "Ngày cần xem, định dạng yyyy-MM-dd", example = "2026-11-24") @RequestParam("day") String dayParam) {
         originGuard.check(request);
         CamsUser user = authContext.authenticate(request).user();
@@ -76,17 +76,16 @@ public class CamsCatalogController {
         }
         LocalDate day = catalogService.requireDay(dayParam);
         catalogService.generateSlots(doctorId, day);
-        List<Map<String, Object>> slots = catalogService.listSlotsForDay(doctorId, day).stream()
+        List<SlotInfo> slots = catalogService.listSlotsForDay(doctorId, day).stream()
                 .filter(slot -> isAvailable(slot.getId()))
                 .map(slot -> {
-                    Map<String, Object> json = new LinkedHashMap<>();
-                    json.put("id", slot.getId());
-                    json.put("doctor_id", slot.getDoctorId());
-                    json.put("starts_at", CamsTime.stamp(slot.getStartsAt()));
-                    json.put("ends_at", CamsTime.stamp(slot.getEndsAt()));
-                    return json;
+                    return new SlotInfo(
+                            slot.getId(),
+                            slot.getDoctorId(),
+                            CamsTime.stamp(slot.getStartsAt()),
+                            CamsTime.stamp(slot.getEndsAt()));
                 }).toList();
-        return Map.of("slots", slots);
+        return new SlotsResponse(slots);
     }
 
     private boolean isAvailable(Long slotId) {

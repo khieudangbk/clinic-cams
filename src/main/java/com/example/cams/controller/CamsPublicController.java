@@ -1,7 +1,22 @@
 package com.example.cams.controller;
 
 import com.example.cams.config.OpenApiConfig;
-import com.example.cams.dto.doc.CamsApiModels;
+import com.example.cams.dto.cams.CamsApiModels.HealthResponse;
+import com.example.cams.dto.cams.CamsApiModels.LoginRequest;
+import com.example.cams.dto.cams.CamsApiModels.LoginResponse;
+import com.example.cams.dto.cams.CamsApiModels.PublicCatalogResponse;
+import com.example.cams.dto.cams.CamsApiModels.RegisterRequest;
+import com.example.cams.dto.cams.CamsApiModels.RegisterResponse;
+import com.example.cams.dto.cams.CamsApiModels.SlotInfo;
+import com.example.cams.dto.cams.CamsApiModels.SlotsResponse;
+import com.example.cams.dto.cams.CamsApiModels;
+import com.example.cams.entity.CamsUser;
+import com.example.cams.security.CamsAuthContext;
+import com.example.cams.security.CamsOriginGuard;
+import com.example.cams.service.CamsAccountService;
+import com.example.cams.service.CamsCatalogService;
+import com.example.cams.util.CamsClock;
+import com.example.cams.util.CamsTime;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,21 +24,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import com.example.cams.entity.CamsUser;
-import com.example.cams.security.CamsAuthContext;
-import com.example.cams.security.CamsOriginGuard;
-import com.example.cams.service.CamsAccountService;
-import com.example.cams.service.CamsCatalogService;
-import com.example.cams.util.CamsClock;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.example.cams.service.CamsAdminService.publicUser;
 import static com.example.cams.util.CamsValidation.integer;
@@ -53,20 +61,16 @@ public class CamsPublicController {
             description = "Trả về trạng thái dịch vụ và chế độ đồng hồ (demo hoặc thật).")
     @ApiResponse(responseCode = "200", description = "Dịch vụ hoạt động", content = @Content(schema = @Schema(implementation = CamsApiModels.HealthResponse.class)))
     @GetMapping("/health")
-    public Map<String, Object> health(HttpServletRequest request) {
+    public HealthResponse health(HttpServletRequest request) {
         originGuard.check(request);
-        Map<String, Object> json = new LinkedHashMap<>();
-        json.put("ok", true);
-        json.put("application", "CAMS");
-        json.put("clock_mode", clock.isDemo() ? "demo" : "real");
-        return json;
+        return new HealthResponse(true, "CAMS", clock.isDemo() ? "demo" : "real");
     }
 
     @Operation(summary = "Danh mục công khai",
             description = "Danh sách chuyên khoa và bác sĩ đang hoạt động cùng thời gian hệ thống. Dùng cho trang đặt lịch trước khi đăng nhập.")
     @ApiResponse(responseCode = "200", description = "Danh mục", content = @Content(schema = @Schema(implementation = CamsApiModels.PublicCatalogResponse.class)))
     @GetMapping("/public/catalog")
-    public Map<String, Object> publicCatalog(HttpServletRequest request) {
+    public PublicCatalogResponse publicCatalog(HttpServletRequest request) {
         originGuard.check(request);
         return catalogService.publicCatalog();
     }
@@ -76,26 +80,26 @@ public class CamsPublicController {
     @ApiResponse(responseCode = "200", description = "Danh sách khung giờ", content = @Content(schema = @Schema(implementation = CamsApiModels.SlotsResponse.class)))
     @ApiResponse(responseCode = "400", description = "doctor_id hoặc day không hợp lệ", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
     @GetMapping("/public/slots")
-    public Map<String, Object> publicSlots(HttpServletRequest request,
+    public SlotsResponse publicSlots(HttpServletRequest request,
             @Parameter(description = "Id bác sĩ", example = "2") @RequestParam("doctor_id") String doctorIdParam,
             @Parameter(description = "Ngày cần xem, định dạng yyyy-MM-dd", example = "2026-11-24") @RequestParam("day") String dayParam) {
         originGuard.check(request);
         long doctorId = integer(doctorIdParam, "Bác sĩ");
         LocalDate day = catalogService.requireDay(dayParam);
         catalogService.generateSlots(doctorId, day);
-        List<Map<String, Object>> slots = catalogService.listSlotsForDay(doctorId, day).stream()
-                .filter(slot -> isAvailable(doctorId, slot.getId()))
+        List<SlotInfo> slots = catalogService.listSlotsForDay(doctorId, day).stream()
+                .filter(slot -> isAvailable(slot.getId()))
                 .map(slot -> {
-                    Map<String, Object> json = new LinkedHashMap<>();
-                    json.put("id", slot.getId());
-                    json.put("starts_at", com.example.cams.util.CamsTime.stamp(slot.getStartsAt()));
-                    json.put("ends_at", com.example.cams.util.CamsTime.stamp(slot.getEndsAt()));
-                    return json;
+                    return new SlotInfo(
+                            slot.getId(),
+                            null,
+                            CamsTime.stamp(slot.getStartsAt()),
+                            CamsTime.stamp(slot.getEndsAt()));
                 }).toList();
-        return Map.of("slots", slots);
+        return new SlotsResponse(slots);
     }
 
-    private boolean isAvailable(long doctorId, Long slotId) {
+    private boolean isAvailable(Long slotId) {
         try {
             catalogService.validateSlot(slotId, null);
             return true;
@@ -111,15 +115,13 @@ public class CamsPublicController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin đăng ký", required = true,
             content = @Content(schema = @Schema(implementation = CamsApiModels.RegisterRequest.class)))
     @PostMapping("/register")
-    public org.springframework.http.ResponseEntity<Map<String, Object>> register(HttpServletRequest request,
-            @RequestBody Map<String, Object> body) {
+    public ResponseEntity<RegisterResponse> register(HttpServletRequest request,
+            @RequestBody RegisterRequest body) {
         originGuard.check(request);
         Long id = accountService.register(body);
-        Map<String, Object> json = new LinkedHashMap<>();
-        json.put("id", id);
-        json.put("message", "Đăng ký thành công. Bạn có thể đăng nhập.");
-        return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.CREATED)
-                .body(json);
+        RegisterResponse result = new RegisterResponse(id, "Đăng ký thành công. Bạn có thể đăng nhập.");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(result);
     }
 
     @Operation(summary = "Đăng nhập",
@@ -130,14 +132,11 @@ public class CamsPublicController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Email và mật khẩu", required = true,
             content = @Content(schema = @Schema(implementation = CamsApiModels.LoginRequest.class)))
     @PostMapping("/login")
-    public Map<String, Object> login(HttpServletRequest request, HttpServletResponse response,
-            @RequestBody Map<String, Object> body) {
+    public LoginResponse login(HttpServletRequest request, HttpServletResponse response,
+            @RequestBody LoginRequest body) {
         originGuard.check(request);
         CamsUser user = accountService.login(body);
         String csrf = authContext.issueSession(response, user);
-        Map<String, Object> json = new LinkedHashMap<>();
-        json.put("user", publicUser(user));
-        json.put("csrf", csrf);
-        return json;
+        return new LoginResponse(publicUser(user), csrf);
     }
 }

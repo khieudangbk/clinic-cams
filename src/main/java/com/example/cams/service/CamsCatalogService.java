@@ -1,5 +1,10 @@
 package com.example.cams.service;
 
+import com.example.cams.dto.cams.CamsApiModels.CatalogResponse;
+import com.example.cams.dto.cams.CamsApiModels.DoctorInfo;
+import com.example.cams.dto.cams.CamsApiModels.PublicCatalogResponse;
+import com.example.cams.dto.cams.CamsApiModels.ScheduleInfo;
+import com.example.cams.dto.cams.CamsApiModels.SpecialtyInfo;
 import com.example.cams.entity.CamsLeave;
 import com.example.cams.entity.CamsSchedule;
 import com.example.cams.entity.CamsSetting;
@@ -82,52 +87,45 @@ public class CamsCatalogService {
         return userRepository.findByRoleAndActiveTrueOrderByNameAsc(CamsRole.doctor);
     }
 
-    private Map<String, Object> doctorJson(CamsUser doctor, Map<Long, String> specialtyNames) {
-        Map<String, Object> json = new LinkedHashMap<>();
-        json.put("id", doctor.getId());
-        json.put("name", doctor.getName());
-        json.put("specialty_id", doctor.getSpecialtyId());
-        json.put("specialty_name", specialtyNames.get(doctor.getSpecialtyId()));
-        return json;
+    private DoctorInfo doctorInfo(CamsUser doctor, Map<Long, String> specialtyNames) {
+        return new DoctorInfo(
+                doctor.getId(),
+                doctor.getName(),
+                doctor.getSpecialtyId(),
+                specialtyNames.get(doctor.getSpecialtyId()));
     }
 
-    public Map<String, Object> publicCatalog() {
+    public PublicCatalogResponse publicCatalog() {
         List<CamsSpecialty> specialties = specialtyRepository.findAllByOrderByNameAsc();
         Map<Long, String> names = specialties.stream()
                 .collect(Collectors.toMap(CamsSpecialty::getId, CamsSpecialty::getName));
-        Map<String, Object> json = new LinkedHashMap<>();
-        json.put("specialties", specialties.stream().map(this::specialtyJson).toList());
-        json.put("doctors", activeDoctors().stream().map(d -> doctorJson(d, names)).toList());
-        json.put("now", CamsTime.stamp(clock.now()));
-        json.put("clock_mode", clock.isDemo() ? "demo" : "real");
-        return json;
+        return new PublicCatalogResponse(
+                specialties.stream().map(this::specialtyInfo).toList(),
+                activeDoctors().stream().map(d -> doctorInfo(d, names)).toList(),
+                CamsTime.stamp(clock.now()),
+                clock.isDemo() ? "demo" : "real");
     }
 
-    public Map<String, Object> fullCatalog() {
+    public CatalogResponse fullCatalog() {
         List<CamsSpecialty> specialties = specialtyRepository.findAllByOrderByNameAsc();
         Map<Long, String> names = specialties.stream()
                 .collect(Collectors.toMap(CamsSpecialty::getId, CamsSpecialty::getName));
-        Map<String, Object> json = new LinkedHashMap<>();
-        json.put("specialties", specialties.stream().map(this::specialtyJson).toList());
-        json.put("doctors", activeDoctors().stream().map(d -> doctorJson(d, names)).toList());
-        json.put("schedules", scheduleRepository.findAll().stream().map(this::scheduleJson).toList());
-        return json;
+        return new CatalogResponse(
+                specialties.stream().map(this::specialtyInfo).toList(),
+                activeDoctors().stream().map(d -> doctorInfo(d, names)).toList(),
+                scheduleRepository.findAll().stream().map(this::scheduleInfo).toList());
     }
 
-    private Map<String, Object> specialtyJson(CamsSpecialty specialty) {
-        Map<String, Object> json = new LinkedHashMap<>();
-        json.put("id", specialty.getId());
-        json.put("name", specialty.getName());
-        return json;
+    private SpecialtyInfo specialtyInfo(CamsSpecialty specialty) {
+        return new SpecialtyInfo(specialty.getId(), specialty.getName());
     }
 
-    public Map<String, Object> scheduleJson(CamsSchedule schedule) {
-        Map<String, Object> json = new LinkedHashMap<>();
-        json.put("doctor_id", schedule.getDoctorId());
-        json.put("weekdays", schedule.getWeekdays());
-        json.put("start_time", schedule.getStartTime());
-        json.put("end_time", schedule.getEndTime());
-        return json;
+    private ScheduleInfo scheduleInfo(CamsSchedule schedule) {
+        return new ScheduleInfo(
+                schedule.getDoctorId(),
+                schedule.getWeekdays(),
+                schedule.getStartTime(),
+                schedule.getEndTime());
     }
 
     private List<Integer> weekdaySet(String csv) {

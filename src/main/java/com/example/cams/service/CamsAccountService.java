@@ -1,5 +1,7 @@
 package com.example.cams.service;
 
+import com.example.cams.dto.cams.CamsApiModels.LoginRequest;
+import com.example.cams.dto.cams.CamsApiModels.RegisterRequest;
 import com.example.cams.entity.CamsUser;
 import com.example.cams.entity.enums.CamsRole;
 import com.example.cams.repository.CamsUserRepository;
@@ -10,8 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
-
+import static com.example.cams.util.CamsValidation.jsonValueOrDefault;
 import static com.example.cams.util.CamsValidation.require;
 import static com.example.cams.util.CamsValidation.text;
 
@@ -31,12 +32,12 @@ public class CamsAccountService {
     }
 
     @Transactional
-    public Long register(Map<String, Object> data) {
-        String name = text(data.get("name"), "Họ tên", 100);
-        String email = text(data.get("email"), "Email", 150).toLowerCase();
+    public Long register(RegisterRequest data) {
+        String name = text(data.name(), "Họ tên", 100);
+        String email = text(data.email(), "Email", 150).toLowerCase();
         require(email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+"), "Email không hợp lệ.");
-        String password = text(data.get("password"), "Mật khẩu", 128, 10);
-        String phone = text(data.getOrDefault("phone", ""), "Số điện thoại", 20, 0);
+        String password = text(data.password(), "Mật khẩu", 128, 10);
+        String phone = text(jsonValueOrDefault(data.phone(), ""), "Số điện thoại", 20, 0);
         require(phone.isEmpty() || phone.matches("[+0-9 ()-]{8,20}"), "Số điện thoại không hợp lệ.");
 
         CamsUser user = new CamsUser();
@@ -54,9 +55,9 @@ public class CamsAccountService {
 
     /** Verifies credentials and the account's lockout window; returns the authenticated user. */
     @Transactional
-    public CamsUser login(Map<String, Object> data) {
-        String email = text(data.get("email"), "Email", 150).toLowerCase();
-        String password = text(data.get("password"), "Mật khẩu", 128);
+    public CamsUser login(LoginRequest data) {
+        String email = text(data.email(), "Email", 150).toLowerCase();
+        String password = text(data.password(), "Mật khẩu", 128);
 
         rateLimiter.requireNotLocked(email);
         CamsUser user = userRepository.findByEmailAndActiveTrue(email).orElse(null);

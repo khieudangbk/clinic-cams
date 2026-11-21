@@ -1,7 +1,15 @@
 package com.example.cams.controller;
 
 import com.example.cams.config.OpenApiConfig;
-import com.example.cams.dto.doc.CamsApiModels;
+import com.example.cams.dto.cams.CamsApiModels.CreateLeaveRequest;
+import com.example.cams.dto.cams.CamsApiModels.CreateLeaveResponse;
+import com.example.cams.dto.cams.CamsApiModels.LeaveListResponse;
+import com.example.cams.dto.cams.CamsApiModels;
+import com.example.cams.entity.CamsUser;
+import com.example.cams.entity.enums.CamsRole;
+import com.example.cams.security.CamsAuthContext;
+import com.example.cams.security.CamsOriginGuard;
+import com.example.cams.service.CamsLeaveService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,18 +17,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import com.example.cams.entity.CamsUser;
-import com.example.cams.entity.enums.CamsRole;
-import com.example.cams.security.CamsAuthContext;
-import com.example.cams.security.CamsOriginGuard;
-import com.example.cams.service.CamsLeaveService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 import java.util.Set;
 
 import static com.example.cams.util.CamsValidation.require;
@@ -47,11 +48,11 @@ public class CamsLeaveController {
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @ApiResponse(responseCode = "200", description = "Danh sách lượt nghỉ", content = @Content(schema = @Schema(implementation = CamsApiModels.LeaveListResponse.class)))
     @GetMapping
-    public Map<String, Object> list(HttpServletRequest request) {
+    public LeaveListResponse list(HttpServletRequest request) {
         originGuard.check(request);
         CamsUser user = authContext.authenticate(request).user();
         requireDoctorOrManager(user);
-        return Map.of("leaves", leaveService.list(user));
+        return new LeaveListResponse(leaveService.list(user));
     }
 
     @Operation(summary = "Đăng ký nghỉ",
@@ -62,8 +63,8 @@ public class CamsLeaveController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Khoảng thời gian nghỉ", required = true,
             content = @Content(schema = @Schema(implementation = CamsApiModels.CreateLeaveRequest.class)))
     @PostMapping
-    public ResponseEntity<Map<String, Object>> create(HttpServletRequest request,
-            @RequestBody Map<String, Object> body) {
+    public ResponseEntity<CreateLeaveResponse> create(HttpServletRequest request,
+            @RequestBody CreateLeaveRequest body) {
         originGuard.check(request);
         CamsAuthContext.Authenticated auth = authContext.authenticate(request);
         requireDoctorOrManager(auth.user());
