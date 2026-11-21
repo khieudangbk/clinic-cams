@@ -1,14 +1,14 @@
 package com.example.cams.controller;
 
 import com.example.cams.config.OpenApiConfig;
-import com.example.cams.dto.cams.CamsApiModels.AppointmentInfo;
-import com.example.cams.dto.cams.CamsApiModels.AppointmentListResponse;
-import com.example.cams.dto.cams.CamsApiModels.AppointmentResponse;
-import com.example.cams.dto.cams.CamsApiModels.AuditEntry;
-import com.example.cams.dto.cams.CamsApiModels.AuditResponse;
-import com.example.cams.dto.cams.CamsApiModels.CreateAppointmentRequest;
-import com.example.cams.dto.cams.CamsApiModels.TransitionRequest;
-import com.example.cams.dto.cams.CamsApiModels;
+import com.example.cams.dto.request.appointment.CreateAppointmentRequest;
+import com.example.cams.dto.request.appointment.TransitionRequest;
+import com.example.cams.dto.response.appointment.AppointmentInfo;
+import com.example.cams.dto.response.appointment.AppointmentListResponse;
+import com.example.cams.dto.response.appointment.AppointmentResponse;
+import com.example.cams.dto.response.appointment.AuditEntry;
+import com.example.cams.dto.response.appointment.AuditResponse;
+import com.example.cams.dto.response.common.ErrorResponse;
 import com.example.cams.entity.CamsUser;
 import com.example.cams.security.CamsAuthContext;
 import com.example.cams.security.CamsOriginGuard;
@@ -52,7 +52,7 @@ public class CamsAppointmentController {
     @Operation(summary = "Danh sách lịch hẹn",
             description = "Bệnh nhân thấy lịch của mình, bác sĩ thấy lịch được giao, lễ tân và quản lý thấy tất cả. Sắp xếp theo giờ hẹn.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
-    @ApiResponse(responseCode = "200", description = "Danh sách lịch hẹn", content = @Content(schema = @Schema(implementation = CamsApiModels.AppointmentListResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Danh sách lịch hẹn", content = @Content(schema = @Schema(implementation = AppointmentListResponse.class)))
     @GetMapping
     public AppointmentListResponse list(HttpServletRequest request) {
         originGuard.check(request);
@@ -64,10 +64,10 @@ public class CamsAppointmentController {
             description = "Bệnh nhân đặt trạng thái `pending` (chờ lễ tân duyệt), kênh `online`. Lễ tân đặt hộ trạng thái `confirmed`, kênh `staff`. Tuân theo giới hạn số lịch chưa khám.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
-    @ApiResponse(responseCode = "201", description = "Đã tạo lịch hẹn", content = @Content(schema = @Schema(implementation = CamsApiModels.AppointmentResponse.class)))
-    @ApiResponse(responseCode = "409", description = "Khung giờ đã có người đặt hoặc đạt giới hạn lịch chưa khám", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @ApiResponse(responseCode = "201", description = "Đã tạo lịch hẹn", content = @Content(schema = @Schema(implementation = AppointmentResponse.class)))
+    @ApiResponse(responseCode = "409", description = "Khung giờ đã có người đặt hoặc đạt giới hạn lịch chưa khám", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin đặt lịch", required = true,
-            content = @Content(schema = @Schema(implementation = CamsApiModels.CreateAppointmentRequest.class)))
+            content = @Content(schema = @Schema(implementation = CreateAppointmentRequest.class)))
     @PostMapping
     public ResponseEntity<AppointmentResponse> create(HttpServletRequest request,
             @RequestBody CreateAppointmentRequest body) {
@@ -81,8 +81,8 @@ public class CamsAppointmentController {
     @Operation(summary = "Lịch sử thao tác của lịch hẹn",
             description = "Danh sách thay đổi trạng thái theo thời gian của một lịch hẹn mà người dùng có quyền xem.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
-    @ApiResponse(responseCode = "200", description = "Nhật ký thao tác", content = @Content(schema = @Schema(implementation = CamsApiModels.AuditResponse.class)))
-    @ApiResponse(responseCode = "404", description = "Không tìm thấy lịch hẹn", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Nhật ký thao tác", content = @Content(schema = @Schema(implementation = AuditResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Không tìm thấy lịch hẹn", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @GetMapping("/{id}/audit")
     public AuditResponse audit(HttpServletRequest request, @Parameter(description = "Id lịch hẹn", example = "7") @PathVariable Long id) {
         originGuard.check(request);
@@ -95,11 +95,11 @@ public class CamsAppointmentController {
             description = "Thực hiện một thao tác trên lịch hẹn.\n\n| action | Ai được phép | Điều kiện | Kết quả |\n|---|---|---|---|\n| approve | lễ tân | đang pending | confirmed |\n| reject | lễ tân | đang pending, bắt buộc reason | cancelled |\n| checkin | lễ tân | confirmed, đúng ngày hẹn | arrived |\n| complete | lễ tân | arrived | completed |\n| noshow | lễ tân | confirmed, khung giờ đã kết thúc | noshow |\n| cancel | bệnh nhân, lễ tân | pending/confirmed, trước giờ hẹn tối thiểu cutoff_hours | cancelled |\n| reschedule | bệnh nhân, lễ tân | như cancel, thêm slot_id mới và chưa quá max_reschedules | giữ trạng thái, đổi khung giờ |")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
-    @ApiResponse(responseCode = "200", description = "Lịch hẹn sau khi cập nhật", content = @Content(schema = @Schema(implementation = CamsApiModels.AppointmentResponse.class)))
-    @ApiResponse(responseCode = "404", description = "action không tồn tại hoặc không tìm thấy lịch hẹn (not_found)", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
-    @ApiResponse(responseCode = "409", description = "invalid_transition, cutoff, reschedule_limit, wrong_day, too_early", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Lịch hẹn sau khi cập nhật", content = @Content(schema = @Schema(implementation = AppointmentResponse.class)))
+    @ApiResponse(responseCode = "404", description = "action không tồn tại hoặc không tìm thấy lịch hẹn (not_found)", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "409", description = "invalid_transition, cutoff, reschedule_limit, wrong_day, too_early", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Lý do và/hoặc khung giờ mới tùy action", required = true,
-            content = @Content(schema = @Schema(implementation = CamsApiModels.TransitionRequest.class)))
+            content = @Content(schema = @Schema(implementation = TransitionRequest.class)))
     @PostMapping("/{id}/{action}")
     public AppointmentResponse transition(HttpServletRequest request, @Parameter(description = "Id lịch hẹn", example = "7") @PathVariable Long id,
             @Parameter(description = "Thao tác", schema = @Schema(allowableValues = { "approve", "reject", "cancel", "reschedule", "checkin", "complete", "noshow" })) @PathVariable String action, @RequestBody TransitionRequest body) {

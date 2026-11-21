@@ -1,14 +1,14 @@
 package com.example.cams.controller;
 
 import com.example.cams.config.OpenApiConfig;
-import com.example.cams.dto.cams.CamsApiModels.CreateStaffUserRequest;
-import com.example.cams.dto.cams.CamsApiModels.CreatedIdResponse;
-import com.example.cams.dto.cams.CamsApiModels.OkResponse;
-import com.example.cams.dto.cams.CamsApiModels.UpdateSettingsRequest;
-import com.example.cams.dto.cams.CamsApiModels.UpdateStaffUserRequest;
-import com.example.cams.dto.cams.CamsApiModels.UpsertSpecialtyRequest;
-import com.example.cams.dto.cams.CamsApiModels.UserListResponse;
-import com.example.cams.dto.cams.CamsApiModels;
+import com.example.cams.dto.request.admin.CreateStaffUserRequest;
+import com.example.cams.dto.request.admin.UpdateSettingsRequest;
+import com.example.cams.dto.request.admin.UpdateStaffUserRequest;
+import com.example.cams.dto.request.admin.UpsertSpecialtyRequest;
+import com.example.cams.dto.response.admin.UserListResponse;
+import com.example.cams.dto.response.common.CreatedIdResponse;
+import com.example.cams.dto.response.common.ErrorResponse;
+import com.example.cams.dto.response.common.OkResponse;
 import com.example.cams.entity.enums.CamsRole;
 import com.example.cams.security.CamsAuthContext;
 import com.example.cams.security.CamsOriginGuard;
@@ -56,7 +56,7 @@ public class CamsAdminController {
     @Operation(summary = "Danh sách nhân sự",
             description = "Bác sĩ, lễ tân và quản lý, sắp theo id. Chỉ quản lý.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
-    @ApiResponse(responseCode = "200", description = "Danh sách nhân sự", content = @Content(schema = @Schema(implementation = CamsApiModels.UserListResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Danh sách nhân sự", content = @Content(schema = @Schema(implementation = UserListResponse.class)))
     @GetMapping("/users")
     public UserListResponse listUsers(HttpServletRequest request) {
         originGuard.check(request);
@@ -69,10 +69,10 @@ public class CamsAdminController {
             description = "Tạo bác sĩ hoặc lễ tân. Bác sĩ mới được tạo kèm mẫu giờ làm việc mặc định. Chỉ quản lý.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
-    @ApiResponse(responseCode = "201", description = "Đã tạo", content = @Content(schema = @Schema(implementation = CamsApiModels.CreatedIdResponse.class)))
-    @ApiResponse(responseCode = "409", description = "Email đã tồn tại (email_exists)", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @ApiResponse(responseCode = "201", description = "Đã tạo", content = @Content(schema = @Schema(implementation = CreatedIdResponse.class)))
+    @ApiResponse(responseCode = "409", description = "Email đã tồn tại (email_exists)", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Thông tin nhân sự", required = true,
-            content = @Content(schema = @Schema(implementation = CamsApiModels.CreateStaffUserRequest.class)))
+            content = @Content(schema = @Schema(implementation = CreateStaffUserRequest.class)))
     @PostMapping("/users")
     public ResponseEntity<CreatedIdResponse> createUser(HttpServletRequest request,
             @RequestBody CreateStaffUserRequest body) {
@@ -87,10 +87,10 @@ public class CamsAdminController {
             description = "Đổi tên, khóa/mở khóa hoặc đổi chuyên khoa; chỉ các trường được gửi mới thay đổi. Chỉ quản lý.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
-    @ApiResponse(responseCode = "200", description = "Đã cập nhật", content = @Content(schema = @Schema(implementation = CamsApiModels.OkResponse.class)))
-    @ApiResponse(responseCode = "404", description = "Tài khoản không thuộc phạm vi quản trị", content = @Content(schema = @Schema(implementation = CamsApiModels.ErrorResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Đã cập nhật", content = @Content(schema = @Schema(implementation = OkResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Tài khoản không thuộc phạm vi quản trị", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Các trường cần đổi", required = true,
-            content = @Content(schema = @Schema(implementation = CamsApiModels.UpdateStaffUserRequest.class)))
+            content = @Content(schema = @Schema(implementation = UpdateStaffUserRequest.class)))
     @PostMapping("/users/{id}")
     public OkResponse updateUser(HttpServletRequest request, @Parameter(description = "Id tài khoản", example = "4") @PathVariable Long id,
             @RequestBody UpdateStaffUserRequest body) {
@@ -105,9 +105,9 @@ public class CamsAdminController {
             description = "Không gửi id thì tạo mới, gửi id thì đổi tên chuyên khoa đó. Chỉ quản lý.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
-    @ApiResponse(responseCode = "200", description = "Đã lưu", content = @Content(schema = @Schema(implementation = CamsApiModels.OkResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Đã lưu", content = @Content(schema = @Schema(implementation = OkResponse.class)))
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Chuyên khoa", required = true,
-            content = @Content(schema = @Schema(implementation = CamsApiModels.UpsertSpecialtyRequest.class)))
+            content = @Content(schema = @Schema(implementation = UpsertSpecialtyRequest.class)))
     @PostMapping("/specialties")
     public OkResponse upsertSpecialty(HttpServletRequest request, @RequestBody UpsertSpecialtyRequest body) {
         originGuard.check(request);
@@ -121,9 +121,9 @@ public class CamsAdminController {
             description = "Chỉ chấp nhận slot_minutes, cutoff_hours, max_reschedules, mỗi giá trị trong khoảng quy định. Chỉ quản lý.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
-    @ApiResponse(responseCode = "200", description = "Đã lưu", content = @Content(schema = @Schema(implementation = CamsApiModels.OkResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Đã lưu", content = @Content(schema = @Schema(implementation = OkResponse.class)))
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Cấu hình cần đổi", required = true,
-            content = @Content(schema = @Schema(implementation = CamsApiModels.UpdateSettingsRequest.class)))
+            content = @Content(schema = @Schema(implementation = UpdateSettingsRequest.class)))
     @PostMapping("/settings")
     public OkResponse updateSettings(HttpServletRequest request, @RequestBody UpdateSettingsRequest body) {
         originGuard.check(request);

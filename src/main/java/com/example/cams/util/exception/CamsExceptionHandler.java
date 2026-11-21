@@ -7,7 +7,7 @@ import com.example.cams.controller.CamsLeaveController;
 import com.example.cams.controller.CamsPublicController;
 import com.example.cams.controller.CamsScheduleController;
 import com.example.cams.controller.CamsSessionController;
-import com.example.cams.dto.cams.CamsApiModels.ErrorResponse;
+import com.example.cams.dto.response.common.ErrorResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;

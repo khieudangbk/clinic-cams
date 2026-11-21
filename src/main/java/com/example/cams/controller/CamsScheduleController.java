@@ -1,9 +1,8 @@
 package com.example.cams.controller;
 
 import com.example.cams.config.OpenApiConfig;
-import com.example.cams.dto.cams.CamsApiModels.SaveScheduleRequest;
-import com.example.cams.dto.cams.CamsApiModels.SaveScheduleResponse;
-import com.example.cams.dto.cams.CamsApiModels;
+import com.example.cams.dto.request.schedule.SaveScheduleRequest;
+import com.example.cams.dto.response.schedule.SaveScheduleResponse;
 import com.example.cams.entity.enums.CamsRole;
 import com.example.cams.security.CamsAuthContext;
 import com.example.cams.security.CamsOriginGuard;
@@ -44,9 +43,9 @@ public class CamsScheduleController {
             description = "Chỉ quản lý. Đặt các ngày và giờ làm việc lặp lại hằng tuần của bác sĩ; áp dụng cho khung giờ sinh về sau, lịch hẹn đã tồn tại được giữ nguyên.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
-    @ApiResponse(responseCode = "200", description = "Đã lưu", content = @Content(schema = @Schema(implementation = CamsApiModels.SaveScheduleResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Đã lưu", content = @Content(schema = @Schema(implementation = SaveScheduleResponse.class)))
     @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Mẫu giờ làm việc tuần", required = true,
-            content = @Content(schema = @Schema(implementation = CamsApiModels.SaveScheduleRequest.class)))
+            content = @Content(schema = @Schema(implementation = SaveScheduleRequest.class)))
     @PostMapping
     public SaveScheduleResponse save(HttpServletRequest request, @RequestBody SaveScheduleRequest body) {
         originGuard.check(request);

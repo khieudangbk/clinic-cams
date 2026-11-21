@@ -1,10 +1,10 @@
 package com.example.cams.service;
 
-import com.example.cams.dto.cams.CamsApiModels.CreateStaffUserRequest;
-import com.example.cams.dto.cams.CamsApiModels.UpdateSettingsRequest;
-import com.example.cams.dto.cams.CamsApiModels.UpdateStaffUserRequest;
-import com.example.cams.dto.cams.CamsApiModels.UpsertSpecialtyRequest;
-import com.example.cams.dto.cams.CamsApiModels.UserInfo;
+import com.example.cams.dto.request.admin.CreateStaffUserRequest;
+import com.example.cams.dto.request.admin.UpdateSettingsRequest;
+import com.example.cams.dto.request.admin.UpdateStaffUserRequest;
+import com.example.cams.dto.request.admin.UpsertSpecialtyRequest;
+import com.example.cams.dto.response.account.UserInfo;
 import com.example.cams.entity.CamsSchedule;
 import com.example.cams.entity.CamsSetting;
 import com.example.cams.entity.CamsSpecialty;

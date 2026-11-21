@@ -1,10 +1,10 @@
 package com.example.cams.service;
 
-import com.example.cams.dto.cams.CamsApiModels.CatalogResponse;
-import com.example.cams.dto.cams.CamsApiModels.DoctorInfo;
-import com.example.cams.dto.cams.CamsApiModels.PublicCatalogResponse;
-import com.example.cams.dto.cams.CamsApiModels.ScheduleInfo;
-import com.example.cams.dto.cams.CamsApiModels.SpecialtyInfo;
+import com.example.cams.dto.response.catalog.CatalogResponse;
+import com.example.cams.dto.response.catalog.DoctorInfo;
+import com.example.cams.dto.response.catalog.PublicCatalogResponse;
+import com.example.cams.dto.response.catalog.SpecialtyInfo;
+import com.example.cams.dto.response.schedule.ScheduleInfo;
 import com.example.cams.entity.CamsLeave;
 import com.example.cams.entity.CamsSchedule;
 import com.example.cams.entity.CamsSetting;
