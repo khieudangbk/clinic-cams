@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Video } from 'lucide-react';
-import type { Doctor, Specialty } from '../types';
+import type { Doctor } from '../interfaces/catalog/Doctor';
+import type { Specialty } from '../interfaces/catalog/Specialty';
 import { media, specialtyImage, doctorImage, articles } from '../data';
 export function SpecialtyCard({ specialty }: { specialty: Specialty }) {
   return (

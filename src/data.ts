@@ -1,4 +1,5 @@
-import type { Doctor, Specialty } from './types';
+import type { Doctor } from './interfaces/catalog/Doctor';
+import type { Specialty } from './interfaces/catalog/Specialty';
 export const media = '/media/';
 export const specialtyImage = (s: Specialty | string) => {
   const name = typeof s === 'string' ? s : s.name;

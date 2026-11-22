@@ -16,7 +16,8 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context';
 import { Modal } from './UI';
-import { normalize } from '../types';
+import { normalize } from '../display';
+
 export function Logo() {
   return (
     <Link to="/" className="logo" aria-label="CAMS trang chủ">
