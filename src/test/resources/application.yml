@@ -32,8 +32,7 @@ spring:
     hibernate:
       ddl-auto: create-drop
     properties:
-      hibernate:
-        format_sql: false
+      '[hibernate.format_sql]': false
   # Tests use Hibernate-generated schema on H2, not the PostgreSQL-specific Flyway migrations.
   flyway:
     enabled: false
