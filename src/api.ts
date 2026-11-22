@@ -13,7 +13,7 @@ export class ApiError extends Error {
     super(message);
   }
 }
-export async function api<T = any, TRequest = unknown>(
+export async function api<T = unknown, TRequest = unknown>(
   path: string,
   method = 'GET',
   data?: TRequest,

@@ -3,26 +3,27 @@ import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useApp } from './context';
 import { Loading, ErrorBox } from './components/UI';
 import { PublicLayout } from './components/Layout';
-import Home from './pages/Home';
-import {
-  Specialties,
-  SpecialtyDetail,
-  DoctorList,
-  DoctorDetail,
-  Facilities,
-  FacilityDetail,
-} from './pages/Discovery';
-import { Auth, Booking } from './pages/Booking';
-import Appointments from './pages/Appointments';
-import { Handbook, Article, Service, Assistant, Information } from './pages/Content';
-import {
-  StaffLayout,
-  Dashboard,
-  StaffAppointments,
-  StaffBooking,
-  StaffSchedule,
-  Admin,
-} from './pages/Staff';
+import { Home } from './pages/home/Home';
+import { Specialties } from './pages/discovery/Specialties';
+import { SpecialtyDetail } from './pages/discovery/SpecialtyDetail';
+import { DoctorList } from './pages/discovery/DoctorList';
+import { DoctorDetail } from './pages/discovery/DoctorDetail';
+import { Facilities } from './pages/discovery/Facilities';
+import { FacilityDetail } from './pages/discovery/FacilityDetail';
+import { Auth } from './pages/account/Auth';
+import { Booking } from './pages/booking/Booking';
+import { Appointments } from './pages/appointments/Appointments';
+import { Handbook } from './pages/content/Handbook';
+import { Article } from './pages/content/Article';
+import { Service } from './pages/content/Service';
+import { Assistant } from './pages/content/Assistant';
+import { Information } from './pages/content/Information';
+import { StaffLayout } from './pages/staff/layout/StaffLayout';
+import { Dashboard } from './pages/staff/dashboard/Dashboard';
+import { StaffAppointments } from './pages/staff/appointments/StaffAppointments';
+import { StaffBooking } from './pages/staff/booking/StaffBooking';
+import { StaffSchedule } from './pages/staff/schedule/StaffSchedule';
+import { Admin } from './pages/staff/admin/Admin';
 export default function App() {
   const { ready, error, catalog } = useApp();
   const { pathname } = useLocation();
