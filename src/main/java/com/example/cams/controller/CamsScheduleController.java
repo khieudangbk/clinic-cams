@@ -8,7 +8,6 @@ import com.example.cams.security.CamsAuthContext;
 import com.example.cams.security.CamsOriginGuard;
 import com.example.cams.service.CamsScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
