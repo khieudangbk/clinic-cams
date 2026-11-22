@@ -1,6 +1,5 @@
 package com.example.cams.config;
 
-import com.example.cams.controller.AuthController;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.Content;
@@ -17,13 +16,12 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
-/** Swagger/OpenAPI metadata and the three authentication schemes the API uses. */
+/** Swagger/OpenAPI metadata and the session and CSRF schemes the API uses. */
 @Configuration
 public class OpenApiConfig {
 
     public static final String SESSION_COOKIE = "camsSession";
     public static final String CSRF_HEADER = "csrfToken";
-    public static final String BEARER_JWT = "bearerJwt";
 
     @Bean
     public OpenAPI camsOpenApi() {
@@ -34,11 +32,9 @@ public class OpenApiConfig {
                         .description("""
                                 REST API đặt lịch khám của phòng khám.
 
-                                **Hai nhóm API:**
-                                - `/api/**` (trừ `/api/auth/**`): API nghiệp vụ CAMS. Đăng nhập bằng `POST /api/login` để \
-                                nhận cookie HttpOnly `cams_session` và `csrf`. Mọi request ghi (POST) phải gửi header \
+                                Đăng nhập bằng `POST /api/login` để \
+                                nhận cookie HttpOnly `cams_session` và `csrf`. Các POST yêu cầu đăng nhập phải gửi header \
                                 `X-CSRF-Token` bằng giá trị `csrf` đó.
-                                - `/api/auth/**`: module xác thực JWT độc lập (bearer token + cookie `refreshToken`).
 
                                 **Quy tắc chung:** Host chỉ được là `localhost` hoặc `127.0.0.1`; request POST có header \
                                 `Origin` phải cùng nguồn. Lỗi nghiệp vụ trả về dạng `{"error": "...", "code": "..."}`.
@@ -53,18 +49,14 @@ public class OpenApiConfig {
                         new Tag().name("Appointments").description("Đặt lịch, duyệt, đổi/hủy, check-in, hoàn tất và lịch sử thao tác."),
                         new Tag().name("Leaves").description("Đăng ký nghỉ của bác sĩ và các lịch hẹn bị ảnh hưởng."),
                         new Tag().name("Schedules").description("Mẫu giờ làm việc theo tuần của bác sĩ (quản lý)."),
-                        new Tag().name("Admin").description("Quản lý tài khoản nhân sự, chuyên khoa và cấu hình (quản lý)."),
-                        new Tag().name("Auth (JWT)").description("Module xác thực JWT độc lập, bọc kết quả trong envelope chung.")))
+                        new Tag().name("Admin").description("Quản lý tài khoản nhân sự, chuyên khoa và cấu hình (quản lý).")))
                 .components(new Components()
                         .addSecuritySchemes(SESSION_COOKIE, new SecurityScheme()
                                 .type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.COOKIE).name("cams_session")
                                 .description("Cookie HttpOnly do `POST /api/login` đặt; hiệu lực 8 giờ."))
                         .addSecuritySchemes(CSRF_HEADER, new SecurityScheme()
                                 .type(SecurityScheme.Type.APIKEY).in(SecurityScheme.In.HEADER).name("X-CSRF-Token")
-                                .description("Giá trị `csrf` trả về khi đăng nhập hoặc từ `GET /api/session`; bắt buộc cho request ghi."))
-                        .addSecuritySchemes(BEARER_JWT, new SecurityScheme()
-                                .type(SecurityScheme.Type.HTTP).scheme("bearer").bearerFormat("JWT")
-                                .description("Access token từ `POST /api/auth/login`.")));
+                                .description("Giá trị `csrf` trả về khi đăng nhập hoặc từ `GET /api/session`; bắt buộc cho request ghi.")));
     }
 
     /**
@@ -74,9 +66,6 @@ public class OpenApiConfig {
     @Bean
     public OperationCustomizer commonErrorResponses() {
         return (Operation operation, org.springframework.web.method.HandlerMethod handlerMethod) -> {
-            if (handlerMethod.getBeanType() == AuthController.class) {
-                return operation;
-            }
             boolean authenticated = operation.getSecurity() != null && !operation.getSecurity().isEmpty();
             addIfAbsent(operation, "400", "Dữ liệu không hợp lệ (validation_error, bad_request)");
             if (authenticated) {

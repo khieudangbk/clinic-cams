@@ -1,0 +1,42 @@
+# MySQL
+# spring:
+#   datasource:
+#     url: jdbc:h2:mem:auth-test;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+#     username: sa
+#     password:
+#     driver-class-name: org.h2.Driver
+#   jpa:
+#     open-in-view: false
+#     hibernate:
+#       ddl-auto: create-drop
+#     properties:
+#       hibernate:
+#         format_sql: false
+#   jackson:
+#     default-property-inclusion: non_null
+#     serialization:
+#       write-dates-as-timestamps: false
+
+# cors:
+#   allowed-origins: http://localhost:5173
+
+# PostgreSQLL
+spring:
+  datasource:
+    url: jdbc:h2:mem:auth-test;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      '[hibernate.format_sql]': false
+  # Tests use Hibernate-generated schema on H2, not the PostgreSQL-specific Flyway migrations.
+  flyway:
+    enabled: false
+  # spring.jackson.* removed: see the comment in src/main/resources/application.yml.
+
+cors:
+  allowed-origins: http://localhost:5173

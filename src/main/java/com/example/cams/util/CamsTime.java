@@ -22,12 +22,12 @@ public final class CamsTime {
     }
 
     /** Parses any ISO-8601 datetime that carries an explicit offset; rejects naive (offset-less) values. */
-    public static OffsetDateTime parseDatetime(Object value) {
+    public static OffsetDateTime parseDatetime(String value) {
         if (value == null) {
             throw new CamsApiException(400, "Thời gian không hợp lệ.");
         }
         try {
-            return OffsetDateTime.parse(String.valueOf(value)).withOffsetSameInstant(OFFSET);
+            return OffsetDateTime.parse(value).withOffsetSameInstant(OFFSET);
         } catch (DateTimeException e) {
             throw new CamsApiException(400, "Thời gian không hợp lệ.");
         }

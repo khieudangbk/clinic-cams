@@ -1,5 +1,6 @@
 package com.example.cams.service;
 
+import com.example.cams.dto.request.schedule.SaveScheduleRequest;
 import com.example.cams.entity.CamsSchedule;
 import com.example.cams.entity.enums.CamsRole;
 import com.example.cams.repository.CamsScheduleRepository;
@@ -9,11 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import static com.example.cams.util.CamsValidation.integer;
+import static com.example.cams.util.CamsValidation.requiredInteger;
 import static com.example.cams.util.CamsValidation.require;
 import static com.example.cams.util.CamsValidation.text;
 
@@ -30,22 +30,17 @@ public class CamsScheduleService {
     }
 
     @Transactional
-    @SuppressWarnings("unchecked")
-    public void save(Map<String, Object> data) {
-        long doctorId = integer(data.get("doctor_id"), "Bác sĩ");
-        Object rawWeekdays = data.get("weekdays");
-        require(rawWeekdays instanceof List, "Chọn thứ Hai đến thứ Bảy.");
-        List<Object> weekdaysList = (List<Object>) rawWeekdays;
-        require(!weekdaysList.isEmpty(), "Chọn thứ Hai đến thứ Bảy.");
+    public void save(SaveScheduleRequest data) {
+        long doctorId = requiredInteger(data.doctorId(), "Bác sĩ");
+        List<Integer> weekdaysList = data.weekdays();
+        require(weekdaysList != null && !weekdaysList.isEmpty(), "Chọn thứ Hai đến thứ Bảy.");
         Set<Integer> weekdays = new TreeSet<>();
-        for (Object value : weekdaysList) {
-            require(value instanceof Integer, "Chọn thứ Hai đến thứ Bảy.");
-            int day = (Integer) value;
-            require(day >= 0 && day <= 5, "Chọn thứ Hai đến thứ Bảy.");
+        for (Integer day : weekdaysList) {
+            require(day != null && day >= 0 && day <= 5, "Chọn thứ Hai đến thứ Bảy.");
             weekdays.add(day);
         }
-        String start = text(data.get("start_time"), "Giờ bắt đầu", 5);
-        String end = text(data.get("end_time"), "Giờ kết thúc", 5);
+        String start = text(data.startTime(), "Giờ bắt đầu", 5);
+        String end = text(data.endTime(), "Giờ kết thúc", 5);
         try {
             LocalTime.parse(start);
             LocalTime.parse(end);

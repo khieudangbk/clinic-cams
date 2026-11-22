@@ -1,7 +1,13 @@
 package com.example.cams.controller;
 
 import com.example.cams.config.OpenApiConfig;
-import com.example.cams.dto.doc.CamsApiModels;
+import com.example.cams.dto.response.account.SessionResponse;
+import com.example.cams.dto.response.common.OkResponse;
+import com.example.cams.security.CamsAuthContext;
+import com.example.cams.security.CamsOriginGuard;
+import com.example.cams.service.CamsCatalogService;
+import com.example.cams.util.CamsClock;
+import com.example.cams.util.CamsTime;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,21 +15,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import com.example.cams.security.CamsAuthContext;
-import com.example.cams.security.CamsOriginGuard;
-import com.example.cams.service.CamsCatalogService;
-import com.example.cams.util.CamsClock;
-import com.example.cams.util.CamsTime;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import static com.example.cams.service.CamsAdminService.publicUser;
 
@@ -49,30 +46,29 @@ public class CamsSessionController {
     @Operation(summary = "Phiên hiện tại",
             description = "Trả về người dùng đang đăng nhập, CSRF token, cấu hình hệ thống và giờ hệ thống.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
-    @ApiResponse(responseCode = "200", description = "Thông tin phiên", content = @Content(schema = @Schema(implementation = CamsApiModels.SessionResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Thông tin phiên", content = @Content(schema = @Schema(implementation = SessionResponse.class)))
     @GetMapping("/session")
-    public Map<String, Object> session(HttpServletRequest request) {
+    public SessionResponse session(HttpServletRequest request) {
         originGuard.check(request);
         CamsAuthContext.Authenticated auth = authContext.authenticate(request);
-        Map<String, Object> json = new LinkedHashMap<>();
-        json.put("user", publicUser(auth.user()));
-        json.put("csrf", auth.session().getCsrf());
-        json.put("settings", catalogService.settingsMap());
-        json.put("now", CamsTime.stamp(clock.now()));
-        return json;
+        return new SessionResponse(
+                publicUser(auth.user()),
+                auth.session().getCsrf(),
+                catalogService.settingsMap(),
+                CamsTime.stamp(clock.now()));
     }
 
     @Operation(summary = "Đăng xuất",
             description = "Xóa phiên phía máy chủ và xóa cookie `cams_session`.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
-    @ApiResponse(responseCode = "200", description = "Đã đăng xuất", content = @Content(schema = @Schema(implementation = CamsApiModels.OkResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Đã đăng xuất", content = @Content(schema = @Schema(implementation = OkResponse.class)))
     @PostMapping("/logout")
-    public Map<String, Object> logout(HttpServletRequest request, HttpServletResponse response) {
+    public OkResponse logout(HttpServletRequest request, HttpServletResponse response) {
         originGuard.check(request);
         CamsAuthContext.Authenticated auth = authContext.authenticate(request);
         authContext.requireCsrf(request, auth.session());
         authContext.clearSession(response, auth.session());
-        return Map.of("ok", true);
+        return new OkResponse(true);
     }
 }
