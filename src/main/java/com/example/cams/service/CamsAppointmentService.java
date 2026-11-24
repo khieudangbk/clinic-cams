@@ -25,6 +25,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -226,7 +227,7 @@ public class CamsAppointmentService {
         appointment.setBookingDetails(clean.isEmpty() ? "" : writeJson(objectMapper.valueToTree(clean)));
         appointment.setPatientNameOverride(overrideName);
         appointment.setPatientPhoneOverride(overridePhone);
-        appointmentRepository.save(appointment);
+        saveClaimingSlot(appointment);
 
         AppointmentInfo after = toInfo(appointment);
         audit(appointment.getId(), actor, "create", null, after, "Tạo lịch " + channel.name());
@@ -298,7 +299,7 @@ public class CamsAppointmentService {
             appointment.setStatus(pair[1]);
         }
 
-        appointmentRepository.save(appointment);
+        saveClaimingSlot(appointment);
         AppointmentInfo after = toInfo(appointment);
         audit(appointment.getId(), actor, action, before, after, reason);
         boolean confirmedNow = appointment.getStatus() == AppointmentStatus.confirmed;
@@ -306,6 +307,34 @@ public class CamsAppointmentService {
             events.publishEvent(new AppointmentConfirmedEvent(appointment.getId())); // SC7: sent after commit
         }
         return after;
+    }
+
+    /**
+     * validateSlot checks that a slot is free and the INSERT/UPDATE follows, so two simultaneous requests can
+     * both pass the check. The partial unique index one_active_appointment_per_slot then rejects the loser;
+     * report that as the ordinary "slot taken" conflict instead of an internal error.
+     */
+    private void saveClaimingSlot(CamsAppointment appointment) {
+        try {
+            appointmentRepository.saveAndFlush(appointment);
+        } catch (DataIntegrityViolationException e) {
+            if (!isSlotConflict(e)) {
+                throw e;
+            }
+            throw new CamsApiException(409, "Khung giờ vừa được người khác đặt. Vui lòng chọn lại.", "slot_taken");
+        }
+    }
+
+    private static boolean isSlotConflict(Throwable error) {
+        for (Throwable t = error; t != null; t = t.getCause()) {
+            if (t.getMessage() != null && t.getMessage().contains("one_active_appointment_per_slot")) {
+                return true;
+            }
+            if (t.getCause() == t) {
+                break;
+            }
+        }
+        return false;
     }
 
     public List<AuditEntry> auditTrail(Long appointmentId, CamsUser actor) {

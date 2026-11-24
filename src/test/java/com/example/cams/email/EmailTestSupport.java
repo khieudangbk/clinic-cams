@@ -21,14 +21,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /** Shared helpers for the SC7 email tests: sessions, slots, booking calls and the sent-mail list. */
-abstract class EmailTestSupport {
+public abstract class EmailTestSupport {
 
-    static final String HOST = "127.0.0.1";
+    public static final String HOST = "127.0.0.1";
 
     /** Monday 12:00 (+07:00). Tuesday 08:00 is 20 hours later, Tuesday 16:00 is 28 hours later. */
-    static final String MONDAY_NOON = "2026-11-23T12:00:00+07:00";
+    public static final String MONDAY_NOON = "2026-11-23T12:00:00+07:00";
 
-    record Session(String csrf, Cookie cookie, String email) {
+    public record Session(String csrf, Cookie cookie, String email) {
     }
 
     @Autowired
