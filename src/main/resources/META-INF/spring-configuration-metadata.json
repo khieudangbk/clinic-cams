@@ -17,6 +17,30 @@
       "defaultValue": ""
     },
     {
+      "name": "cams.mail.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Send confirmation and reminder emails through SMTP. When false, the email is only logged as disabled.",
+      "defaultValue": false
+    },
+    {
+      "name": "cams.mail.from",
+      "type": "java.lang.String",
+      "description": "Sender address of CAMS emails.",
+      "defaultValue": "no-reply@cams.local"
+    },
+    {
+      "name": "cams.mail.scheduler-enabled",
+      "type": "java.lang.Boolean",
+      "description": "Run the reminder job automatically.",
+      "defaultValue": true
+    },
+    {
+      "name": "cams.mail.reminder-interval-ms",
+      "type": "java.lang.Long",
+      "description": "Delay between automatic reminder runs, in milliseconds.",
+      "defaultValue": 900000
+    },
+    {
       "name": "cors.allowed-origins",
       "type": "java.lang.String",
       "description": "Comma-separated list of allowed frontend origins."
