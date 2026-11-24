@@ -53,4 +53,8 @@ public class CamsAppointment {
 
     @Column(name = "patient_phone_override", nullable = false, length = 20)
     private String patientPhoneOverride = "";
+
+    // SC7: set once the reminder email has been handled; reset to null when the appointment is rescheduled.
+    @Column(name = "reminder_sent_at")
+    private OffsetDateTime reminderSentAt;
 }

@@ -25,7 +25,8 @@ public class CamsDataSeeder implements ApplicationRunner {
 
     private static final String DEMO_PASSWORD = "Demo@12345";
     private static final Map<String, Integer> DEFAULT_SETTINGS = Map.of(
-            "slot_minutes", 30, "cutoff_hours", 2, "max_reschedules", 2, "advance_days", 30, "max_active", 3);
+            "slot_minutes", 30, "cutoff_hours", 2, "max_reschedules", 2, "advance_days", 30, "max_active", 3,
+            "reminder_hours", 24);
 
     private final CamsSpecialtyRepository specialtyRepository;
     private final CamsUserRepository userRepository;
