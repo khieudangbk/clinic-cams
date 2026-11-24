@@ -190,3 +190,71 @@ Test dùng H2 (`src/test/resources/application.yml`), tắt Flyway và để Hib
 - Swagger UI và `/v3/api-docs` đang mở công khai. Khi deploy thật có thể tắt bằng `springdoc.api-docs.enabled=false`.
 - Dữ liệu giả thêm thủ công vào DB (nếu có) nằm trong volume `postgres_data`, sẽ mất khi `docker compose down -v`.
 - `CamsDataSeeder` vẫn còn để test H2 có dữ liệu; trên PostgreSQL nó không làm gì vì V3 đã seed.
+
+## 9. Email (SC7)
+
+Hệ thống gửi **email** (không SMS, không tốn phí) khi lịch được xác nhận và nhắc lịch trước giờ khám.
+
+### Khi nào gửi
+
+| Email | Thời điểm |
+|---|---|
+| Xác nhận | Lễ tân **approve** lịch `pending`; lễ tân **đặt hộ** (lịch tạo ra là `confirmed`); **đổi lịch** một lịch `confirmed` (gửi lại với giờ mới). Gửi sau khi transaction commit. |
+| Nhắc lịch | Tác vụ định kỳ (mặc định 15 phút) gửi **một** email cho mỗi lịch `confirmed` có giờ khám trong khoảng (`now`, `now + reminder_hours`]. Đổi lịch thì được nhắc lại theo giờ mới. |
+
+- Người nhận là email tài khoản bệnh nhân. Khách vãng lai không có email: không gửi, ghi `skipped`, lịch vẫn tạo bình thường.
+- Gửi lỗi (SMTP hỏng) **không** làm hỏng việc duyệt, đặt hay đổi lịch: chỉ ghi log WARN và bản ghi `failed`. Nhắc lịch lỗi sẽ được thử lại ở lần chạy sau.
+- `MAIL_ENABLED=false` (mặc định): không gửi gì, ghi `disabled`, lịch nhắc vẫn được đánh dấu đã xử lý.
+- Thời gian trong email lấy từ `CamsClock` (giờ Việt Nam), nên demo được bằng `CAMS_DEMO_NOW`.
+
+### Biến môi trường (`.env`)
+
+| Biến | Ý nghĩa | Mặc định |
+|---|---|---|
+| `MAIL_ENABLED` | `true` để gửi qua SMTP | `false` |
+| `MAIL_HOST`, `MAIL_PORT` | SMTP server | rỗng, `1025` |
+| `MAIL_USERNAME`, `MAIL_PASSWORD` | Tài khoản SMTP (không commit) | rỗng |
+| `MAIL_FROM` | Địa chỉ người gửi | `no-reply@cams.local` |
+| `MAIL_SMTP_AUTH`, `MAIL_STARTTLS` | `true` khi SMTP cần đăng nhập và STARTTLS (Gmail) | `false` |
+
+Tham số `reminder_hours` (bảng `cams_settings`, mặc định 24, hợp lệ 1–72) sửa được qua `POST /api/settings`, giống `cutoff_hours`. Tắt tác vụ tự chạy bằng `cams.mail.scheduler-enabled=false`.
+
+### Demo miễn phí với MailHog
+
+`docker-compose.yml.example` có sẵn service `mailhog` (SMTP cổng 1025, giao diện web cổng 8025).
+
+```bash
+docker compose up -d                 # bật PostgreSQL và MailHog
+# .env: MAIL_HOST=localhost  MAIL_PORT=1025  MAIL_ENABLED=true
+./mvnw spring-boot:run
+```
+
+Mở http://localhost:8025 để xem email đã gửi.
+
+### Gmail SMTP (gửi email thật, nếu cần)
+
+Bật xác minh 2 bước cho tài khoản Google, tạo **mật khẩu ứng dụng** (App password), rồi đặt trong `.env`:
+
+```
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=<địa chỉ gmail>
+MAIL_PASSWORD=<mật khẩu ứng dụng 16 ký tự>
+MAIL_FROM=<địa chỉ gmail>
+MAIL_SMTP_AUTH=true
+MAIL_STARTTLS=true
+MAIL_ENABLED=true
+```
+
+Không commit mật khẩu.
+
+### Endpoint cho quản lý
+
+| Endpoint | Tác dụng |
+|---|---|
+| `POST /api/admin/reminders/run` | Chạy tác vụ nhắc ngay (cần CSRF), trả `{"sent": n, "skipped": m}`. Chỉ `manager`. |
+| `GET /api/admin/email-log?appointment_id=` | Danh sách bản ghi `cams_email_log` (`kind`: `confirm`/`reminder`; `status`: `sent`/`skipped`/`failed`/`disabled`). Bỏ `appointment_id` thì trả 200 bản ghi mới nhất. Chỉ `manager`. |
+
+Schema mới ở `V4__cams_email.sql`: bảng `cams_email_log`, cột `cams_appointments.reminder_sent_at` (chống gửi lặp, về `NULL` khi đổi lịch) và `reminder_hours = 24`.
+
+Test: `CamsEmailTest`, `CamsEmailDisabledTest` (H2, mock `JavaMailSender`, đồng hồ giả lập); tác vụ tự chạy bị tắt trong test.

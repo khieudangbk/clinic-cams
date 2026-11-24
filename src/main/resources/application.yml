@@ -26,6 +26,9 @@ spring:
     username: ${MAIL_USERNAME:}
     password: ${MAIL_PASSWORD:}
     default-encoding: UTF-8
+    properties:
+      '[mail.smtp.auth]': ${MAIL_SMTP_AUTH:false}
+      '[mail.smtp.starttls.enable]': ${MAIL_STARTTLS:false}
   # spring.jackson.* removed: Boot 4 binds it against the new Jackson 3 (tools.jackson) types,
   # which rejects this classic-Jackson-2 property shape. The equivalent (non_null inclusion, no
   # timestamp dates) is now set directly on the classic ObjectMapper bean in JacksonConfig.
