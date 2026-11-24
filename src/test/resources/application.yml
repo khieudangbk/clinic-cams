@@ -15,5 +15,10 @@ spring:
     enabled: false
   # spring.jackson.* removed: see the comment in src/main/resources/application.yml.
 
+cams:
+  mail:
+    # Tests call the reminder service/endpoint directly; no background job.
+    scheduler-enabled: false
+
 cors:
   allowed-origins: http://localhost:5173
