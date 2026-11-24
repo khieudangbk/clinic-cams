@@ -16,4 +16,8 @@ public class CamsSpecialty {
 
     @Column(nullable = false, length = 100)
     private String name;
+
+    // false = stopped: hidden from the catalog and not bookable; existing appointments are kept.
+    @Column(nullable = false)
+    private boolean active = true;
 }

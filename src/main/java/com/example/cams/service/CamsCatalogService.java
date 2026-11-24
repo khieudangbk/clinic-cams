@@ -83,8 +83,17 @@ public class CamsCatalogService {
         return value;
     }
 
+    /** Active doctors whose specialty has not been stopped. */
     public List<CamsUser> activeDoctors() {
-        return userRepository.findByRoleAndActiveTrueOrderByNameAsc(CamsRole.doctor);
+        Set<Long> activeSpecialties = specialtyRepository.findByActiveTrueOrderByNameAsc().stream()
+                .map(CamsSpecialty::getId).collect(Collectors.toSet());
+        return userRepository.findByRoleAndActiveTrueOrderByNameAsc(CamsRole.doctor).stream()
+                .filter(d -> activeSpecialties.contains(d.getSpecialtyId())).toList();
+    }
+
+    private boolean specialtyStopped(CamsUser doctor) {
+        return doctor.getSpecialtyId() != null
+                && specialtyRepository.findById(doctor.getSpecialtyId()).map(sp -> !sp.isActive()).orElse(false);
     }
 
     private DoctorInfo doctorInfo(CamsUser doctor, Map<Long, String> specialtyNames) {
@@ -96,28 +105,31 @@ public class CamsCatalogService {
     }
 
     public PublicCatalogResponse publicCatalog() {
-        List<CamsSpecialty> specialties = specialtyRepository.findAllByOrderByNameAsc();
+        List<CamsSpecialty> specialties = specialtyRepository.findByActiveTrueOrderByNameAsc();
         Map<Long, String> names = specialties.stream()
                 .collect(Collectors.toMap(CamsSpecialty::getId, CamsSpecialty::getName));
         return new PublicCatalogResponse(
-                specialties.stream().map(this::specialtyInfo).toList(),
+                specialties.stream().map(sp -> specialtyInfo(sp, false)).toList(),
                 activeDoctors().stream().map(d -> doctorInfo(d, names)).toList(),
                 CamsTime.stamp(clock.now()),
                 clock.isDemo() ? "demo" : "real");
     }
 
-    public CatalogResponse fullCatalog() {
-        List<CamsSpecialty> specialties = specialtyRepository.findAllByOrderByNameAsc();
+    /** Managers also see stopped specialties (active = 0) so they can reopen them. */
+    public CatalogResponse fullCatalog(boolean includeStopped) {
+        List<CamsSpecialty> specialties = includeStopped ? specialtyRepository.findAllByOrderByNameAsc()
+                : specialtyRepository.findByActiveTrueOrderByNameAsc();
         Map<Long, String> names = specialties.stream()
                 .collect(Collectors.toMap(CamsSpecialty::getId, CamsSpecialty::getName));
         return new CatalogResponse(
-                specialties.stream().map(this::specialtyInfo).toList(),
+                specialties.stream().map(sp -> specialtyInfo(sp, includeStopped)).toList(),
                 activeDoctors().stream().map(d -> doctorInfo(d, names)).toList(),
                 scheduleRepository.findAll().stream().map(this::scheduleInfo).toList());
     }
 
-    private SpecialtyInfo specialtyInfo(CamsSpecialty specialty) {
-        return new SpecialtyInfo(specialty.getId(), specialty.getName());
+    private SpecialtyInfo specialtyInfo(CamsSpecialty specialty, boolean withActive) {
+        return new SpecialtyInfo(specialty.getId(), specialty.getName(),
+                withActive ? (specialty.isActive() ? 1 : 0) : null);
     }
 
     private ScheduleInfo scheduleInfo(CamsSchedule schedule) {
@@ -144,6 +156,7 @@ public class CamsCatalogService {
         CamsUser doctor = userRepository.findByIdAndActiveTrue(doctorId)
                 .filter(u -> u.getRole() == CamsRole.doctor)
                 .orElseThrow(() -> new CamsApiException(404, "Bác sĩ không tồn tại hoặc đã khóa."));
+        require(!specialtyStopped(doctor), "Bác sĩ không tồn tại hoặc đã khóa.", 404);
         CamsSchedule schedule = scheduleRepository.findByDoctorId(doctorId)
                 .orElseThrow(() -> new CamsApiException(400, "Bác sĩ chưa có lịch làm việc."));
         if (!weekdaySet(schedule.getWeekdays()).contains(isoWeekday(day.getDayOfWeek().getValue()))) {
@@ -199,7 +212,8 @@ public class CamsCatalogService {
         CamsSlot slot = slotRepository.findById(slotId)
                 .orElseThrow(() -> new CamsApiException(404, "Khung giờ hoặc bác sĩ không khả dụng."));
         CamsUser doctor = userRepository.findById(slot.getDoctorId()).orElse(null);
-        require(doctor != null && doctor.isActive(), "Khung giờ hoặc bác sĩ không khả dụng.", 404);
+        require(doctor != null && doctor.isActive() && !specialtyStopped(doctor),
+                "Khung giờ hoặc bác sĩ không khả dụng.", 404);
 
         OffsetDateTime now = clock.now();
         require(slot.getStartsAt().isAfter(now), "Khung giờ đã bắt đầu.", 409, "slot_unavailable");

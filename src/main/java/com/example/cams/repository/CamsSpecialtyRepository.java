@@ -9,5 +9,7 @@ import java.util.Optional;
 public interface CamsSpecialtyRepository extends JpaRepository<CamsSpecialty, Long> {
     List<CamsSpecialty> findAllByOrderByNameAsc();
 
+    List<CamsSpecialty> findByActiveTrueOrderByNameAsc();
+
     Optional<CamsSpecialty> findByName(String name);
 }

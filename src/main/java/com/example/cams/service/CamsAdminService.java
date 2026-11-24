@@ -83,7 +83,8 @@ public class CamsAdminService {
         String hashed = passwordEncoder.encode(text(data.password(), "Mật khẩu", 128, 10));
         Long specialtyId = "doctor".equals(role) ? requiredInteger(data.specialtyId(), "Chuyên khoa") : null;
         if (specialtyId != null) {
-            require(specialtyRepository.findById(specialtyId).isPresent(), "Chuyên khoa không tồn tại.");
+            require(specialtyRepository.findById(specialtyId).filter(CamsSpecialty::isActive).isPresent(),
+                    "Chuyên khoa không tồn tại hoặc đã ngừng.");
         }
 
         CamsUser user = new CamsUser();
@@ -130,16 +131,20 @@ public class CamsAdminService {
 
     @Transactional
     public void upsertSpecialty(UpsertSpecialtyRequest data) {
-        String name = text(data.name(), "Chuyên khoa", 100);
         if (data.id() != null) {
             long id = requiredInteger(data.id(), "Chuyên khoa");
             CamsSpecialty specialty = specialtyRepository.findById(id)
                     .orElseThrow(() -> new CamsApiException(404, "Chuyên khoa không tồn tại."));
-            specialty.setName(name);
+            if (data.name() != null) {
+                specialty.setName(text(data.name(), "Chuyên khoa", 100));
+            }
+            if (data.active() != null) {
+                specialty.setActive(data.active());
+            }
             specialtyRepository.save(specialty);
         } else {
             CamsSpecialty specialty = new CamsSpecialty();
-            specialty.setName(name);
+            specialty.setName(text(data.name(), "Chuyên khoa", 100));
             specialtyRepository.save(specialty);
         }
     }
