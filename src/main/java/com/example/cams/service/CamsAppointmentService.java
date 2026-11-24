@@ -17,12 +17,14 @@ import com.example.cams.repository.CamsAuditRepository;
 import com.example.cams.repository.CamsLeaveRepository;
 import com.example.cams.repository.CamsSlotRepository;
 import com.example.cams.repository.CamsUserRepository;
+import com.example.cams.service.event.AppointmentConfirmedEvent;
 import com.example.cams.util.CamsClock;
 import com.example.cams.util.CamsTime;
 import com.example.cams.util.exception.CamsApiException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +54,7 @@ public class CamsAppointmentService {
     private final CamsAuditRepository auditRepository;
     private final CamsCatalogService catalogService;
     private final CamsClock clock;
+    private final ApplicationEventPublisher events;
 
     // A plain, locally-owned mapper: this is only used to serialize our own JSON text columns
     // (booking_details, audit before/after), not Spring MVC's HTTP layer, so it is independent
@@ -60,7 +63,8 @@ public class CamsAppointmentService {
 
     public CamsAppointmentService(CamsAppointmentRepository appointmentRepository, CamsSlotRepository slotRepository,
             CamsUserRepository userRepository, CamsLeaveRepository leaveRepository,
-            CamsAuditRepository auditRepository, CamsCatalogService catalogService, CamsClock clock) {
+            CamsAuditRepository auditRepository, CamsCatalogService catalogService, CamsClock clock,
+            ApplicationEventPublisher events) {
         this.appointmentRepository = appointmentRepository;
         this.slotRepository = slotRepository;
         this.userRepository = userRepository;
@@ -68,6 +72,7 @@ public class CamsAppointmentService {
         this.auditRepository = auditRepository;
         this.catalogService = catalogService;
         this.clock = clock;
+        this.events = events;
     }
 
     private int setting(String key) {
@@ -225,6 +230,9 @@ public class CamsAppointmentService {
 
         AppointmentInfo after = toInfo(appointment);
         audit(appointment.getId(), actor, "create", null, after, "Tạo lịch " + channel.name());
+        if (status == AppointmentStatus.confirmed) {
+            events.publishEvent(new AppointmentConfirmedEvent(appointment.getId())); // SC7: sent after commit
+        }
         return after;
     }
 
@@ -260,6 +268,7 @@ public class CamsAppointmentService {
                 CamsSlot newSlot = catalogService.validateSlot(newSlotId, appointment.getId());
                 appointment.setSlotId(newSlot.getId());
                 appointment.setRescheduleCount(appointment.getRescheduleCount() + 1);
+                appointment.setReminderSentAt(null); // SC7: remind again for the new time
             } else {
                 appointment.setStatus(AppointmentStatus.cancelled);
             }
@@ -292,6 +301,10 @@ public class CamsAppointmentService {
         appointmentRepository.save(appointment);
         AppointmentInfo after = toInfo(appointment);
         audit(appointment.getId(), actor, action, before, after, reason);
+        boolean confirmedNow = appointment.getStatus() == AppointmentStatus.confirmed;
+        if (confirmedNow && (action.equals("approve") || action.equals("reschedule"))) {
+            events.publishEvent(new AppointmentConfirmedEvent(appointment.getId())); // SC7: sent after commit
+        }
         return after;
     }
 
