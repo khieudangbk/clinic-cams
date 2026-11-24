@@ -123,7 +123,7 @@ src/main/java/com/example/cams/
 └── util/          CamsTime, CamsClock, CamsValidation, exception
 src/main/resources/
 ├── application.yml
-└── db/migration/  V1__init_auth.sql, V2__cams_booking.sql, V3__cams_seed_data.sql
+└── db/migration/  V1__init_auth.sql ... V5__cams_specialty_active.sql
 ```
 
 ## 5. Cơ sở dữ liệu
@@ -135,6 +135,8 @@ Schema do **Flyway** quản lý; Hibernate chỉ `validate`. Không dùng `ddl-a
 | `V1__init_auth.sql` | Migration lịch sử tạo bảng `users`, hiện luồng CAMS dùng `cams_users` |
 | `V2__cams_booking.sql` | Bảng `cams_*` và cấu hình mặc định (`slot_minutes`, `cutoff_hours`, `max_reschedules`, `advance_days`, `max_active`) |
 | `V3__cams_seed_data.sql` | 3 chuyên khoa, tài khoản demo, 10 bác sĩ và mẫu giờ làm việc (có thể chạy lại an toàn) |
+| `V4__cams_email.sql` | Email SC7: `cams_email_log`, `reminder_sent_at`, `reminder_hours` (xem mục 9) |
+| `V5__cams_specialty_active.sql` | Cột `cams_specialties.active` để ngừng/mở lại chuyên khoa |
 
 Các bảng chính: `cams_users`, `cams_specialties`, `cams_schedules`, `cams_slots`, `cams_appointments`, `cams_audit`, `cams_leaves`, `cams_settings`, `cams_sessions`.
 
@@ -159,6 +161,10 @@ Mô tả chi tiết từng endpoint, payload và mã lỗi xem ở Swagger UI. T
 | Leaves | `GET`/`POST /api/leaves` |
 | Schedules | `POST /api/schedules` |
 | Admin | `GET`/`POST /api/users`, `POST /api/users/{id}`, `POST /api/specialties`, `POST /api/settings` |
+
+`POST /api/specialties` tạo chuyên khoa (`{"name"}`), đổi tên (`{"id","name"}`) hoặc **ngừng/mở lại** (`{"id","active":false|true}`, cũng nhận 0/1). Chuyên khoa đã ngừng và các bác sĩ của nó bị ẩn khỏi tra cứu, không đặt được lịch mới; lịch đã có vẫn giữ. Quản lý vẫn thấy chuyên khoa đã ngừng trong `GET /api/catalog` (`active: 0`) để mở lại.
+
+Khi hai yêu cầu cùng đặt một khung giờ, yêu cầu thua nhận `409 slot_taken`.
 
 Ví dụ nhanh bằng curl:
 

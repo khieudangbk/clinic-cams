@@ -48,14 +48,14 @@ public class CamsCatalogController {
     }
 
     @Operation(summary = "Danh mục đầy đủ",
-            description = "Chuyên khoa, bác sĩ đang hoạt động và mẫu giờ làm việc tuần của từng bác sĩ.")
+            description = "Chuyên khoa, bác sĩ đang hoạt động và mẫu giờ làm việc tuần của từng bác sĩ. Chuyên khoa đã ngừng (và bác sĩ của nó) bị ẩn; riêng quản lý vẫn thấy chuyên khoa đã ngừng với active = 0.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @ApiResponse(responseCode = "200", description = "Danh mục", content = @Content(schema = @Schema(implementation = CatalogResponse.class)))
     @GetMapping("/catalog")
     public CatalogResponse catalog(HttpServletRequest request) {
         originGuard.check(request);
-        authContext.authenticate(request);
-        return catalogService.fullCatalog();
+        CamsAuthContext.Authenticated auth = authContext.authenticate(request);
+        return catalogService.fullCatalog(auth.user().getRole() == CamsRole.manager);
     }
 
     @Operation(summary = "Khung giờ còn trống (đã đăng nhập)",
