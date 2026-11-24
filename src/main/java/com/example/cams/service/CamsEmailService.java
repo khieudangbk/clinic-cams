@@ -57,8 +57,9 @@ public class CamsEmailService {
             CamsSlotRepository slotRepository, CamsUserRepository userRepository,
             CamsSpecialtyRepository specialtyRepository, CamsEmailLogRepository emailLogRepository,
             CamsCatalogService catalogService, CamsClock clock, PlatformTransactionManager transactionManager,
-            @Value("${cams.mail.enabled:false}") boolean enabled,
-            @Value("${cams.mail.from:no-reply@cams.local}") String from) {
+            // Strings, because .env.example leaves these empty and "" cannot be converted to a boolean.
+            @Value("${cams.mail.enabled:false}") String enabled,
+            @Value("${cams.mail.from:}") String from) {
         this.mailSender = mailSender;
         this.appointmentRepository = appointmentRepository;
         this.slotRepository = slotRepository;
@@ -67,8 +68,8 @@ public class CamsEmailService {
         this.emailLogRepository = emailLogRepository;
         this.catalogService = catalogService;
         this.clock = clock;
-        this.enabled = enabled;
-        this.from = from;
+        this.enabled = Boolean.parseBoolean(enabled.trim());
+        this.from = from.isBlank() ? "no-reply@cams.local" : from.trim();
         // AFTER_COMMIT listeners still see the finished transaction bound to the thread, so every database
         // access here opens its own transaction instead of joining it.
         this.newTransaction = new TransactionTemplate(transactionManager);
