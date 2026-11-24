@@ -5,6 +5,8 @@ import com.example.cams.dto.request.admin.CreateStaffUserRequest;
 import com.example.cams.dto.request.admin.UpdateSettingsRequest;
 import com.example.cams.dto.request.admin.UpdateStaffUserRequest;
 import com.example.cams.dto.request.admin.UpsertSpecialtyRequest;
+import com.example.cams.dto.response.admin.EmailLogResponse;
+import com.example.cams.dto.response.admin.ReminderRunResponse;
 import com.example.cams.dto.response.admin.UserListResponse;
 import com.example.cams.dto.response.common.CreatedIdResponse;
 import com.example.cams.dto.response.common.ErrorResponse;
@@ -13,6 +15,8 @@ import com.example.cams.entity.enums.CamsRole;
 import com.example.cams.security.CamsAuthContext;
 import com.example.cams.security.CamsOriginGuard;
 import com.example.cams.service.CamsAdminService;
+import com.example.cams.service.CamsEmailService;
+import com.example.cams.service.CamsReminderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -36,12 +40,16 @@ public class CamsAdminController {
     private final CamsOriginGuard originGuard;
     private final CamsAuthContext authContext;
     private final CamsAdminService adminService;
+    private final CamsReminderService reminderService;
+    private final CamsEmailService emailService;
 
     public CamsAdminController(CamsOriginGuard originGuard, CamsAuthContext authContext,
-            CamsAdminService adminService) {
+            CamsAdminService adminService, CamsReminderService reminderService, CamsEmailService emailService) {
         this.originGuard = originGuard;
         this.authContext = authContext;
         this.adminService = adminService;
+        this.reminderService = reminderService;
+        this.emailService = emailService;
     }
 
     private void requireManager(HttpServletRequest request, CamsAuthContext.Authenticated auth, boolean mutating) {
@@ -118,7 +126,7 @@ public class CamsAdminController {
     }
 
     @Operation(summary = "Cập nhật cấu hình",
-            description = "Chỉ chấp nhận slot_minutes, cutoff_hours, max_reschedules, mỗi giá trị trong khoảng quy định. Chỉ quản lý.")
+            description = "Chỉ chấp nhận slot_minutes, cutoff_hours, max_reschedules, reminder_hours (1–72), mỗi giá trị trong khoảng quy định. Chỉ quản lý.")
     @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
     @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
     @ApiResponse(responseCode = "200", description = "Đã lưu", content = @Content(schema = @Schema(implementation = OkResponse.class)))
@@ -131,5 +139,36 @@ public class CamsAdminController {
         requireManager(request, auth, true);
         adminService.updateSettings(body);
         return new OkResponse(true);
+    }
+
+    @Operation(summary = "Chạy tác vụ nhắc lịch ngay",
+            description = "Gửi email nhắc cho các lịch đã xác nhận có giờ khám trong khoảng (bây giờ, bây giờ + reminder_hours] "
+                    + "và chưa được nhắc; mỗi lịch chỉ nhắc một lần. Dùng để demo và kiểm thử. Chỉ quản lý.")
+    @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
+    @SecurityRequirement(name = OpenApiConfig.CSRF_HEADER)
+    @ApiResponse(responseCode = "200", description = "Số email đã gửi và số lịch bị bỏ qua", content = @Content(schema = @Schema(implementation = ReminderRunResponse.class)))
+    @ApiResponse(responseCode = "403", description = "Không phải quản lý (forbidden)", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @PostMapping("/admin/reminders/run")
+    public ReminderRunResponse runReminders(HttpServletRequest request) {
+        originGuard.check(request);
+        CamsAuthContext.Authenticated auth = authContext.authenticate(request);
+        requireManager(request, auth, true);
+        return reminderService.run();
+    }
+
+    @Operation(summary = "Nhật ký gửi email",
+            description = "Các lần gửi email xác nhận và nhắc lịch (sent, skipped, failed, disabled). "
+                    + "Có appointment_id thì lọc theo lịch đó; không có thì trả 200 bản ghi mới nhất. Chỉ quản lý.")
+    @SecurityRequirement(name = OpenApiConfig.SESSION_COOKIE)
+    @ApiResponse(responseCode = "200", description = "Danh sách bản ghi", content = @Content(schema = @Schema(implementation = EmailLogResponse.class)))
+    @ApiResponse(responseCode = "403", description = "Không phải quản lý (forbidden)", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @GetMapping("/admin/email-log")
+    public EmailLogResponse emailLog(HttpServletRequest request,
+            @Parameter(description = "Id lịch hẹn cần xem", example = "1")
+            @RequestParam(name = "appointment_id", required = false) Long appointmentId) {
+        originGuard.check(request);
+        CamsAuthContext.Authenticated auth = authContext.authenticate(request);
+        requireManager(request, auth, false);
+        return new EmailLogResponse(emailService.logs(appointmentId));
     }
 }
