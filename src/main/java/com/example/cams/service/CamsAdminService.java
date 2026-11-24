@@ -35,7 +35,8 @@ public class CamsAdminService {
     private static final Map<String, int[]> SETTING_BOUNDS = Map.of(
             "slot_minutes", new int[] { 5, 120 },
             "cutoff_hours", new int[] { 0, 72 },
-            "max_reschedules", new int[] { 0, 10 });
+            "max_reschedules", new int[] { 0, 10 },
+            "reminder_hours", new int[] { 1, 72 });
 
     private final CamsUserRepository userRepository;
     private final CamsSpecialtyRepository specialtyRepository;
