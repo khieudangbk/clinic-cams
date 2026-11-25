@@ -1,4 +1,14 @@
-# CAMS Backend — Clinic Appointment Management System
+# BTL Quản lý dự án Phần mềm - HK 261
+
+| STT | MSSV | Họ và tên | Vai trò |
+|---:|---|---|---|
+| 1 | 2311007 | Ngọ Văn Hiệp | Project Manager |
+| 2 | 2310497 | Nguyễn Quốc Duy | Business Analyst |
+| 3 | 2311557 | Nguyễn Quốc Khải | Frontend Developer & UI/UX |
+| 4 | 2311572 | Đặng Ngọc Khiêu | Technical Lead & Backend Lead |
+| 5 | 2212222 | Nguyễn Đức Nghĩa | QA/Test Lead & triển khai |
+
+## CAMS Backend — Clinic Appointment Management System
 
 Backend Spring Boot cho hệ thống đặt lịch khám CAMS: bệnh nhân đặt lịch, lễ tân duyệt/đặt hộ, bác sĩ đăng ký nghỉ, quản lý cấu hình nhân sự và lịch làm việc. Frontend React nằm ở `../frontend`.
 
