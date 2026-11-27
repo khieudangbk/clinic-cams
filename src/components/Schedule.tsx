@@ -1,9 +1,12 @@
+import type { SlotsResponse } from '../interfaces/slot/SlotsResponse';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarDays, MousePointerClick } from 'lucide-react';
 import { api } from '../api';
 import { useApp } from '../context';
-import { dayOffset, type Doctor, type Slot } from '../types';
+import { dayOffset } from '../display';
+import type { Doctor } from '../interfaces/catalog/Doctor';
+import type { Slot } from '../interfaces/slot/Slot';
 import { Loading, ErrorBox } from './UI';
 export function AddressBlock() {
   return (
@@ -39,7 +42,7 @@ export default function Schedule({
     const controller = new AbortController();
     setLoading(true);
     setError('');
-    api<{ slots: Slot[] }>(
+    api<SlotsResponse>(
       `/api/public/slots?doctor_id=${doctor.id}&day=${day}`,
       'GET',
       undefined,

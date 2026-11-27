@@ -1,106 +1,27 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, CheckCircle2, CalendarDays } from 'lucide-react';
-import { useApp } from '../context';
-import { Section, Carousel } from '../components/UI';
+import { HomeSearch } from './components/HomeSearch';
+import { Link, useLocation } from 'react-router-dom';
+import { CheckCircle2, CalendarDays } from 'lucide-react';
+import { useApp } from '../../context';
+import { Section, Carousel } from '../../components/UI';
 import {
   SpecialtyCard,
   DoctorCard,
   FacilityCard,
   ArticleCard,
   ServiceMediaCard,
-} from '../components/Cards';
-import { services, media, articles } from '../data';
-function Banner() {
-  const [slide, setSlide] = useState(0),
-    [pause, setPause] = useState(false);
-  useEffect(() => {
-    if (pause || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const timer = setInterval(() => setSlide((x) => (x + 1) % 3), 6500);
-    return () => clearInterval(timer);
-  }, [pause]);
-  return (
-    <div
-      className="promotion-carousel"
-      onMouseEnter={() => setPause(true)}
-      onMouseLeave={() => setPause(false)}
-      onFocusCapture={() => setPause(true)}
-      onBlurCapture={() => setPause(false)}
-    >
-      <Link to="/bac-si" aria-label="Đặt khám tại CAMS">
-        <img
-          src={`/media/banner-${slide}.svg`}
-          alt={
-            [
-              'Chủ động lịch khám — Đặt khám ngay',
-              'Theo dõi lịch hẹn trong tài khoản',
-              'CAMS — Khám theo chuyên khoa',
-            ][slide]
-          }
-        />
-      </Link>
-      <div className="carousel-dots">
-        {[0, 1, 2].map((n) => (
-          <button
-            key={n}
-            aria-label={`Xem banner ${n + 1}`}
-            aria-pressed={slide === n}
-            className={slide === n ? 'active' : ''}
-            onClick={() => setSlide(n)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-export default function Home() {
+} from '../../components/Cards';
+import { services, media, articles } from '../../data';
+import { Banner } from './components/Banner';
+
+export function Home() {
   const { catalog } = useApp();
-  const [query, setQuery] = useState('');
-  const nav = useNavigate();
   const { pathname } = useLocation();
   if (!catalog) return null;
   const wellness = pathname === '/song-khoe',
     atHome = pathname === '/tai-nha';
   return (
     <>
-      <section className="hero-band">
-        <div className="container">
-          <h1>
-            Tìm kiếm bác sĩ, phòng khám, dịch vụ y tế
-            <br className="desktop-break" /> và đặt lịch khám
-          </h1>
-          <form
-            className="hero-search"
-            role="search"
-            onSubmit={(e) => {
-              e.preventDefault();
-              nav('/tim-kiem?q=' + encodeURIComponent(query));
-            }}
-          >
-            <label className="sr-only" htmlFor="hero-query">
-              Tìm bác sĩ, chuyên khoa
-            </label>
-            <input
-              id="hero-query"
-              placeholder="Tìm bác sĩ, chuyên khoa, phòng khám…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              maxLength={100}
-            />
-            <button aria-label="Tìm kiếm">
-              <Search />
-            </button>
-          </form>
-          <h2 className="assistant-title">Tra cứu & hỗ trợ đặt khám</h2>
-          <Link to="/tro-ly" className="ai-card">
-            <img src="/media/assistant.png" alt="" />
-            <div>
-              <h3>Trợ lý Đi khám</h3>
-              <p>Tìm kiếm thông tin bác sĩ, nơi khám và đặt lịch khám</p>
-            </div>
-          </Link>
-        </div>
-      </section>
+      <HomeSearch />
       {atHome && (
         <div className="container category-notice">
           <strong>Dịch vụ tại nhà</strong>

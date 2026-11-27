@@ -1,22 +1,16 @@
+import type { Store } from './interfaces/app/Store';
+import type { SessionResponse } from './interfaces/account/SessionResponse';
+import type { OkResponse } from './interfaces/common/OkResponse';
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import { api, setCsrf, ApiError } from './api';
-import type { Catalog, User } from './types';
-type Store = {
-  catalog: Catalog | null;
-  user: User | null;
-  settings: Record<string, number>;
-  ready: boolean;
-  error: string;
-  refresh: () => Promise<void>;
-  logout: () => Promise<void>;
-  notify: (text: string, error?: boolean) => void;
-};
+import type { PublicCatalogResponse } from './interfaces/catalog/PublicCatalogResponse';
+import type { User } from './interfaces/account/User';
 const Context = createContext<Store>(null!);
 export const useApp = () => useContext(Context);
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [catalog, setCatalog] = useState<Catalog | null>(null),
+  const [catalog, setCatalog] = useState<PublicCatalogResponse | null>(null),
     [user, setUser] = useState<User | null>(null),
-    [settings, setSettings] = useState({}),
+    [settings, setSettings] = useState<Record<string, number>>({}),
     [ready, setReady] = useState(false),
     [error, setError] = useState(''),
     [toast, setToast] = useState({ text: '', error: false });
@@ -28,10 +22,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [toast]);
   const refresh = useCallback(async () => {
-    const c = await api<Catalog>('/api/public/catalog');
+    const c = await api<PublicCatalogResponse>('/api/public/catalog');
     setCatalog(c);
     try {
-      const s = await api('/api/session');
+      const s = await api<SessionResponse>('/api/session');
       setUser(s.user);
       setCsrf(s.csrf);
       setSettings(s.settings);
@@ -48,7 +42,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .finally(() => setReady(true));
   }, [refresh]);
   const logout = async () => {
-    await api('/api/logout', 'POST', {});
+    await api<OkResponse>('/api/logout', 'POST', {});
     setUser(null);
     setCsrf('');
   };
