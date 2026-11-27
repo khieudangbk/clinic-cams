@@ -33,14 +33,12 @@ public class CamsAuthContext {
 
     private final CamsSessionRepository sessionRepository;
     private final CamsUserRepository userRepository;
-    private final CamsClock clock;
     private final SecureRandom random = new SecureRandom();
 
     public CamsAuthContext(CamsSessionRepository sessionRepository, CamsUserRepository userRepository,
             CamsClock clock) {
         this.sessionRepository = sessionRepository;
         this.userRepository = userRepository;
-        this.clock = clock;
     }
 
     /** Looks up the session from the request cookie and returns its active owner, or 401. */

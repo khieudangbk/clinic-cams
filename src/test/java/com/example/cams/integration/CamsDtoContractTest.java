@@ -82,6 +82,6 @@ class CamsDtoContractTest {
         var privateSlot = mapper.valueToTree(new SlotInfo(10, 7L, "start", "end"));
         assertFalse(publicSlot.has("doctor_id"));
         assertEquals(7L, privateSlot.get("doctor_id").asLong());
-        assertEquals("start", publicSlot.get("starts_at").asText());
+        assertEquals("start", publicSlot.get("starts_at").asString());
     }
 }

@@ -9,7 +9,6 @@ import com.example.cams.service.CamsCatalogService;
 import com.example.cams.util.CamsClock;
 import com.example.cams.util.CamsTime;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
